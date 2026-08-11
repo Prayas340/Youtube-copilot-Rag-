@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+
+<html lang="en"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0" name="viewport"/><style>@layer base{html,body{margin:0;padding:0;}body{overscroll-behavior:none;background-color:#0c0e12;}main>:first-child{margin-top:0!important;}main>:last-child{margin-bottom:0!important;}.ambient-glow{position:fixed;width:60vw;height:60vw;border-radius:full;filter:blur(120px);opacity:0.15;z-index:-1;pointer-events:none;}}::-webkit-scrollbar{display:none;}
+/* Sidebar collapse transition styles */
+#sidebar { transition: width 0.3s ease; }
+#main-content { transition: padding-left 0.3s ease; }
+#header { transition: left 0.3s ease; }
+.sidebar-text { transition: opacity 0.2s ease, width 0.2s ease; overflow: hidden; white-space: nowrap; }
+.sidebar-collapsed #sidebar { width: 5rem; }
+.sidebar-collapsed #main-content { padding-left: 5rem; }
+.sidebar-collapsed #header { left: 5rem; }
+.sidebar-collapsed .sidebar-text { opacity: 0; width: 0; display: none; }
+.sidebar-collapsed .nav-item { justify-content: center; padding-left: 0; padding-right: 0; }
+.sidebar-collapsed .nav-item span.material-symbols-outlined { margin-right: 0; }
+.sidebar-collapsed .logo-container { justify-content: center; padding-left: 0; padding-right: 0; }
+.sidebar-collapsed #sidebar-toggle .material-symbols-outlined { transform: rotate(180deg); }
+#sidebar-toggle .material-symbols-outlined { transition: transform 0.3s ease; }
+</style><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config={darkMode:"class",theme:{extend:{"colors":{"primary-container":"#8083ff","surface-container-lowest":"#0c0e12","on-primary-fixed":"#07006c","on-tertiary-fixed-variant":"#5516be","inverse-surface":"#e1e2e7","tertiary-fixed-dim":"#d0bcff","surface-container-low":"#191c1f","primary":"#c0c1ff","on-error":"#690005","on-primary-container":"#0d0096","background":"#111417","surface-container-high":"#282a2e","on-secondary-container":"#00424e","surface-dim":"#111417","on-tertiary":"#3c0091","on-secondary-fixed":"#001f26","inverse-on-surface":"#2e3134","on-surface-variant":"#c7c4d7","surface-tint":"#c0c1ff","secondary-container":"#03b5d3","on-primary-fixed-variant":"#2f2ebe","tertiary-container":"#a078ff","surface-variant":"#323539","primary-fixed-dim":"#c0c1ff","secondary-fixed-dim":"#4cd7f6","error-container":"#93000a","on-surface":"#e1e2e7","on-tertiary-container":"#340080","primary-fixed":"#e1e0ff","tertiary":"#d0bcff","on-tertiary-fixed":"#23005c","surface-bright":"#37393d","outline":"#908fa0","inverse-primary":"#494bd6","tertiary-fixed":"#e9ddff","secondary-fixed":"#acedff","on-background":"#e1e2e7","surface":"#111417","error":"#ffb4ab","outline-variant":"#464554","on-primary":"#1000a9","on-error-container":"#ffdad6","on-secondary-fixed-variant":"#004e5c","surface-container":"#1d2023","surface-container-highest":"#323539","on-secondary":"#003640","secondary":"#4cd7f6"},"borderRadius":{"DEFAULT":"0.25rem","lg":"0.5rem","xl":"0.75rem","full":"9999px"},"spacing":{"xs":"0.5rem","md":"1.5rem","margin":"40px","base":"4px","gutter":"24px","xl":"4rem","sm":"1rem","lg":"2.5rem"},"fontFamily":{"body-md":["Inter"],"display":["Geist"],"headline-md":["Geist"],"label-sm":["JetBrains Mono"],"headline-lg":["Geist"],"body-lg":["Inter"],"label-md":["JetBrains Mono"],"body-sm":["Inter"]},"fontSize":{"body-md":["16px",{"lineHeight":"1.5","fontWeight":"400"}],"display":["48px",{"lineHeight":"1.1","letterSpacing":"-0.02em","fontWeight":"700"}],"headline-md":["24px",{"lineHeight":"1.3","fontWeight":"600"}],"label-sm":["11px",{"lineHeight":"1.1","letterSpacing":"0.05em","fontWeight":"500"}],"headline-lg":["32px",{"lineHeight":"1.2","letterSpacing":"-0.01em","fontWeight":"600"}],"body-lg":["18px",{"lineHeight":"1.6","fontWeight":"400"}],"label-md":["13px",{"lineHeight":"1.1","letterSpacing":"0.05em","fontWeight":"500"}],"body-sm":["14px",{"lineHeight":"1.5","fontWeight":"400"}]}}}}</script><script>
+  document.addEventListener('DOMContentLoaded', () => {
+    const toggle = document.getElementById('theme-toggle');
+    const icon = toggle.querySelector('.material-symbols-outlined');
+    let isDark = true;
+
+    toggle.addEventListener('click', () => {
+      isDark = !isDark;
+      toggle.classList.toggle('is-light');
+      
+      // Animate icon change
+      icon.style.opacity = '0';
+      setTimeout(() => {
+        icon.textContent = isDark ? 'dark_mode' : 'light_mode';
+        icon.style.opacity = '1';
+      }, 150);
+
+      // Subtle ambient glow update
+      const glows = document.querySelectorAll('.ambient-glow');
+      if (!isDark) {
+        glows[0].style.opacity = '0.1';
+        glows[1].style.opacity = '0.1';
+      } else {
+        glows[0].style.opacity = '0.15';
+        glows[1].style.opacity = '0.15';
+      }
+    });
+
+    const sidebarToggle = document.getElementById('sidebar-toggle');
+    sidebarToggle.addEventListener('click', () => {
+      document.body.classList.toggle('sidebar-collapsed');
+    });
+  });
+</script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@100..900&amp;family=Inter:wght@100..900&amp;family=JetBrains+Mono:wght@100..900&amp;display=swap" rel="stylesheet"/></head><body class="bg-surface-container-lowest font-body-md text-on-surface"><div class="ambient-glow bg-primary top-[-10%] left-[-10%]"></div><div class="ambient-glow bg-secondary bottom-[-10%] right-[-10%]"></div><aside class="fixed left-0 top-0 h-full w-64 bg-surface/40 backdrop-blur-xl z-50 flex flex-col border-r border-outline-variant/10" id="sidebar"><div class="logo-container px-8 py-6 flex items-center gap-3"><img alt="TranscriptAI Logo" class="h-8 w-auto object-contain" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBDn48G1e-XqjpBX25nrhEbXj9U8q-qbky-nbIvVgKL_AtUggNPcW6i2iZw5MddK-sg1ai_KQPHP37pzvNKv5R4vGSXug9t1eaiot2BUlQkUuPXIuB9LvDLjYsktr3hOGaYapkskj6pbsQkhjxdJqN8qqpJcoCVc306HuYVkBjrukSaQrKYC6oX6HVlLo5HDniaYlgaeXim0dUpf-ZbeUG5r95jD2V2UjKemSy_jymSLOnkjY86NEVE"/><span class="sidebar-text text-headline-md font-headline-md tracking-tight text-on-surface">TranscriptAI</span></div><nav class="flex-1 px-4 mt-6 space-y-2" data-active-classes="bg-primary-container text-on-primary-container font-headline-md"><a aria-current="page" class="nav-item flex items-center px-4 py-3 rounded-xl transition-all bg-primary-container text-on-primary-container font-headline-md" data-path="dashboard" href="#"><span class="material-symbols-outlined mr-3">dashboard</span><span class="sidebar-text font-body-md text-body-md">Dashboard</span></a><a class="nav-item flex items-center px-4 py-3 rounded-xl text-on-surface-variant hover:bg-surface-variant hover:text-on-surface transition-all" data-path="saved-notes" href="#"><span class="material-symbols-outlined mr-3">description</span><span class="sidebar-text font-body-md text-body-md">Saved Notes</span></a><a class="nav-item flex items-center px-4 py-3 rounded-xl text-on-surface-variant hover:bg-surface-variant hover:text-on-surface transition-all" data-path="api-settings" href="#"><span class="material-symbols-outlined mr-3">api</span><span class="sidebar-text font-body-md text-body-md">API Settings</span></a></nav><div class="p-4 border-t border-outline-variant/10 flex justify-center"><button class="p-2 rounded-full hover:bg-surface-variant transition-colors flex items-center justify-center text-on-surface-variant" id="sidebar-toggle"><span class="material-symbols-outlined">chevron_left</span></button></div></aside><div class="pl-64" id="main-content"><header class="fixed top-0 left-64 right-0 h-16 bg-white/5 backdrop-blur-md border-b border-white/10 z-40 flex items-center justify-between px-8" id="header"><div class="flex items-center gap-8"><nav class="flex gap-8" data-active-classes="text-primary border-b-2 border-primary pb-5 mt-5"><a aria-current="page" class="font-body-sm transition-colors text-primary border-b-2 border-primary pb-5 mt-5" data-path="dashboard" href="#">Dashboard</a><a class="text-body-sm font-body-sm text-on-surface-variant hover:text-on-surface transition-colors" data-path="saved-notes" href="#">Saved Notes</a><a class="text-body-sm font-body-sm text-on-surface-variant hover:text-on-surface transition-colors" data-path="api-settings" href="#">API Settings</a></nav></div><div class="flex items-center gap-4"><button class="theme-toggle-btn p-2 rounded-full bg-white/5 backdrop-blur-md border border-white/10 hover:bg-white/10 transition-colors flex items-center justify-center group" id="theme-toggle">
+<span class="material-symbols-outlined text-on-surface-variant group-hover:text-primary icon-rotate">dark_mode</span>
+</button><button class="p-2 rounded-full hover:bg-white/5 transition-colors"><span class="material-symbols-outlined text-on-surface-variant">notifications</span></button><img alt="Profile" class="w-8 h-8 rounded-full object-cover border border-white/20" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCRgj7KjKuoMMSfXzFkMR9vFCIFHqeYLmhCR0EFSiPNQsD1zQUuUFwfCIjGQLbzzBE3hEQJa34azyTuu6jgsJa6I2LgQEPS05dT_HK3T5Ijkt0bIwSnLqvzhp6Hl4jiYBijOtsxz4UUUq-7r0yEFnrKACX8U7A6T65Z81KmnAPSmMUF1dLQRvsekHtJxD4OMB3bwO0XIgdtLtW7WCe6N0glG4H6xmgA59Uk8V6uDQpb_GkK6mw_FgNb"/></div></header><main class="relative pt-16 min-h-screen"><div class="flex flex-col w-full h-full max-w-[1600px] mx-auto p-4 md:p-8 gap-6 md:gap-8 lg:flex-row">
+<!-- Left Panel (40%) -->
+<div class="flex flex-col w-full lg:w-5/12 gap-6 h-full">
+<!-- Search Input -->
+<div class="relative w-full rounded-xl bg-surface/50 backdrop-blur-xl shadow-lg border border-white/5 p-1 flex items-center transition-all duration-300 focus-within:shadow-[0_0_30px_rgba(6,182,212,0.15)] focus-within:border-cyan-500/30">
+<span class="material-symbols-outlined text-on-surface-variant ml-4 mr-2">link</span>
+<input class="flex-1 bg-transparent border-none focus:outline-none text-body-md text-on-surface placeholder:text-on-surface-variant/50 py-3 font-body-md" placeholder="Paste YouTube URL here..." type="text"/>
+<button class="px-6 py-2 rounded-lg bg-gradient-to-r from-cyan-500 to-indigo-600 text-white font-label-md text-label-md uppercase tracking-wider hover:shadow-[0_0_20px_rgba(99,102,241,0.4)] transition-shadow duration-300">Analyze</button>
+</div>
+<!-- Video Player Card -->
+<div class="rounded-2xl bg-white/[0.04] backdrop-blur-[24px] border border-white/10 overflow-hidden relative group">
+<div class="absolute top-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-white/20 to-transparent"></div>
+<!-- Video Placeholder -->
+<div class="relative w-full aspect-video bg-surface-container-highest overflow-hidden">
+<div class="bg-cover bg-center w-full h-full opacity-80 mix-blend-screen" data-alt="A sleek, modern YouTube video player interface displaying a presentation on artificial intelligence. The video shows a speaker on stage with a dark, futuristic slide deck behind them. Neon blue and purple lighting. The player has a minimal, semi-transparent progress bar at the bottom." style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuAlpvszL-CvRQjiPCeo3o_pvj1cmPBMKziRlJ9lD2DpaRA_9v2aERiOtKo_V2QtYz98zxo6zLMyl_OJRyub7RWzsYShxAKFe4PTpvJ9Nb232-KT71sQ3vHch0FVsqXUKdRAz448OpUYu2GFCpy5EQDYCnSzCwbBSWjC2_L--jcBe3UPz2CcQ-E8al3G5uBO3ARaE3b8Qh7fdbT63XKl92FrzDsgruYUUrFv5BGuntJ22j0EizALc_k9')"></div>
+<!-- Play Button Overlay -->
+<div class="absolute inset-0 flex items-center justify-center pointer-events-none">
+<div class="w-16 h-16 rounded-full bg-white/10 backdrop-blur-md flex items-center justify-center border border-white/20 group-hover:scale-110 transition-transform duration-300">
+<span class="material-symbols-outlined text-white text-3xl" style="font-variation-settings: 'FILL' 1;">play_arrow</span>
+</div>
+</div>
+<!-- Duration Badge -->
+<div class="absolute bottom-3 right-3 px-2 py-1 rounded bg-black/60 backdrop-blur-sm text-white font-label-sm text-label-sm">24:15</div>
+</div>
+<div class="p-5 flex flex-col gap-3">
+<h3 class="font-headline-md text-headline-md text-on-surface leading-tight line-clamp-1">Mastering AI Workflows in 2024</h3>
+<div class="flex flex-wrap gap-2">
+<span class="px-3 py-1 rounded-full bg-cyan-500/10 text-cyan-400 border border-cyan-500/20 font-label-sm text-label-sm flex items-center gap-1"><span class="material-symbols-outlined text-[14px]">auto_awesome</span> Auto-Summarized</span>
+<span class="px-3 py-1 rounded-full bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 font-label-sm text-label-sm flex items-center gap-1"><span class="material-symbols-outlined text-[14px]">closed_caption</span> Transcript Ready</span>
+</div>
+</div>
+</div>
+<!-- AI Summary Card -->
+<div class="rounded-2xl bg-white/[0.04] backdrop-blur-[24px] border border-white/10 p-6 relative flex-1 flex flex-col min-h-0">
+<div class="absolute top-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-white/20 to-transparent"></div>
+<div class="flex items-center gap-2 mb-4">
+<span class="material-symbols-outlined text-secondary">psychology</span>
+<h4 class="font-headline-md text-body-lg text-on-surface">Key Takeaways</h4>
+</div>
+<div class="space-y-4 overflow-y-auto pr-2 custom-scrollbar flex-1">
+<div class="flex gap-3 items-start">
+<div class="w-1.5 h-1.5 rounded-full bg-cyan-400 mt-2 shrink-0 shadow-[0_0_8px_rgba(6,182,212,0.6)]"></div>
+<p class="font-body-md text-body-sm text-on-surface-variant leading-relaxed">Integration of LLMs into daily tasks can reduce repetitive coding by up to 40% when paired with semantic search databases.</p>
+</div>
+<div class="flex gap-3 items-start">
+<div class="w-1.5 h-1.5 rounded-full bg-indigo-400 mt-2 shrink-0 shadow-[0_0_8px_rgba(99,102,241,0.6)]"></div>
+<p class="font-body-md text-body-sm text-on-surface-variant leading-relaxed">Vector embeddings are replacing traditional keyword search for documentation retrieval, increasing context relevance significantly.</p>
+</div>
+<div class="flex gap-3 items-start">
+<div class="w-1.5 h-1.5 rounded-full bg-purple-400 mt-2 shrink-0 shadow-[0_0_8px_rgba(168,85,247,0.6)]"></div>
+<p class="font-body-md text-body-sm text-on-surface-variant leading-relaxed">Prompt engineering is evolving into 'context engineering'—focusing on data pipelines rather than just wording.</p>
+</div>
+</div>
+</div>
+</div>
+<!-- Right Panel (60%) -->
+<div class="flex flex-col w-full lg:w-7/12 rounded-2xl bg-white/[0.03] backdrop-blur-[24px] border border-white/10 relative h-[80vh] lg:h-auto overflow-hidden">
+<div class="absolute top-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-white/20 to-transparent z-10"></div>
+<!-- Chat Header -->
+<div class="p-4 border-b border-white/5 flex items-center justify-between bg-surface-container-lowest/30 backdrop-blur-md z-10">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded-full bg-gradient-to-br from-cyan-400 to-indigo-600 flex items-center justify-center">
+<span class="material-symbols-outlined text-white text-sm">smart_toy</span>
+</div>
+<div>
+<h2 class="font-headline-md text-body-md text-on-surface m-0">Transcript Assistant</h2>
+<p class="font-body-sm text-label-sm text-on-surface-variant/70 m-0">Context loaded: Mastering AI Workflows</p>
+</div>
+</div>
+<button class="p-2 rounded-full hover:bg-white/5 text-on-surface-variant transition-colors">
+<span class="material-symbols-outlined">more_vert</span>
+</button>
+</div>
+<!-- Chat Area -->
+<div class="flex-1 overflow-y-auto p-6 space-y-6 flex flex-col relative z-0">
+<!-- Ambient Background Element -->
+<div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-primary/5 rounded-full blur-[100px] pointer-events-none"></div>
+<!-- User Message -->
+<div class="flex w-full justify-end">
+<div class="max-w-[80%] bg-surface-variant/50 backdrop-blur-md rounded-2xl rounded-tr-sm p-4 border border-white/5 text-on-surface font-body-md text-body-md shadow-sm">
+                     What were the key takeaways from minute 10 to 20?
+                 </div>
+</div>
+<!-- AI Response -->
+<div class="flex w-full justify-start gap-4">
+<div class="w-8 h-8 rounded-full bg-surface-container flex items-center justify-center shrink-0 border border-white/10 mt-1">
+<span class="material-symbols-outlined text-secondary text-sm">smart_toy</span>
+</div>
+<div class="max-w-[85%] bg-white/[0.05] backdrop-blur-xl rounded-2xl rounded-tl-sm p-5 border border-white/10 text-on-surface shadow-md relative">
+<p class="font-body-md text-body-md mb-4 text-on-surface-variant">Here is a breakdown of the critical points discussed between 10:00 and 20:00:</p>
+<div class="space-y-4">
+<!-- Structured Point 1 -->
+<div class="bg-surface-container-lowest/40 rounded-lg p-3 border border-white/5 hover:bg-white/5 transition-colors group">
+<div class="flex items-center gap-2 mb-2">
+<button class="px-2 py-0.5 rounded bg-cyan-500/10 text-cyan-400 font-label-sm text-label-sm border border-cyan-500/30 hover:bg-cyan-500/20 hover:border-cyan-400 transition-all cursor-pointer flex items-center gap-1">
+<span class="material-symbols-outlined text-[12px]">schedule</span> 10:15
+                                 </button>
+<span class="font-headline-md text-body-sm text-on-surface">Data Pipeline Automation</span>
+</div>
+<p class="font-body-md text-body-sm text-on-surface-variant/80 pl-2 border-l-2 border-cyan-500/30">The speaker demonstrates how to set up automated webhooks connecting local databases to cloud LLM instances, bypassing manual data entry.</p>
+</div>
+<!-- Structured Point 2 -->
+<div class="bg-surface-container-lowest/40 rounded-lg p-3 border border-white/5 hover:bg-white/5 transition-colors group">
+<div class="flex items-center gap-2 mb-2">
+<button class="px-2 py-0.5 rounded bg-indigo-500/10 text-indigo-400 font-label-sm text-label-sm border border-indigo-500/30 hover:bg-indigo-500/20 hover:border-indigo-400 transition-all cursor-pointer flex items-center gap-1">
+<span class="material-symbols-outlined text-[12px]">schedule</span> 14:40
+                                 </button>
+<span class="font-headline-md text-body-sm text-on-surface">Handling Context Windows</span>
+</div>
+<p class="font-body-md text-body-sm text-on-surface-variant/80 pl-2 border-l-2 border-indigo-500/30">Strategies for chunking large text documents. They emphasize using semantic chunking rather than fixed token limits to maintain meaning.</p>
+</div>
+<!-- Structured Point 3 -->
+<div class="bg-surface-container-lowest/40 rounded-lg p-3 border border-white/5 hover:bg-white/5 transition-colors group">
+<div class="flex items-center gap-2 mb-2">
+<button class="px-2 py-0.5 rounded bg-purple-500/10 text-purple-400 font-label-sm text-label-sm border border-purple-500/30 hover:bg-purple-500/20 hover:border-purple-400 transition-all cursor-pointer flex items-center gap-1">
+<span class="material-symbols-outlined text-[12px]">schedule</span> 18:22
+                                 </button>
+<span class="font-headline-md text-body-sm text-on-surface">Live Demo: Semantic Search</span>
+</div>
+<p class="font-body-md text-body-sm text-on-surface-variant/80 pl-2 border-l-2 border-purple-500/30">A live demonstration of querying a vector database using natural language, showing response times under 200ms.</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Chat Input Area -->
+<div class="p-4 bg-surface-container-lowest/50 backdrop-blur-xl border-t border-white/10 z-10 flex flex-col gap-3 relative">
+<!-- Suggestion Chips -->
+<div class="flex gap-2 overflow-x-auto pb-1 custom-scrollbar w-full">
+<button class="whitespace-nowrap px-4 py-1.5 rounded-full bg-white/5 hover:bg-white/10 border border-white/10 text-on-surface-variant text-label-md font-label-md transition-colors flex items-center gap-1.5">
+<span class="material-symbols-outlined text-[14px]">summarize</span> Summarize key points
+                </button>
+<button class="whitespace-nowrap px-4 py-1.5 rounded-full bg-white/5 hover:bg-white/10 border border-white/10 text-on-surface-variant text-label-md font-label-md transition-colors flex items-center gap-1.5">
+<span class="material-symbols-outlined text-[14px]">list_alt</span> List action items
+                </button>
+<button class="whitespace-nowrap px-4 py-1.5 rounded-full bg-white/5 hover:bg-white/10 border border-white/10 text-on-surface-variant text-label-md font-label-md transition-colors flex items-center gap-1.5">
+<span class="material-symbols-outlined text-[14px]">timer</span> Extract timestamps
+                </button>
+</div>
+<!-- Input Bar -->
+<div class="relative flex items-center bg-surface-variant/40 rounded-xl border border-white/10 focus-within:border-cyan-500/40 focus-within:bg-surface-variant/60 transition-all duration-300">
+<button class="p-3 text-on-surface-variant hover:text-cyan-400 transition-colors">
+<span class="material-symbols-outlined">mic</span>
+</button>
+<input class="flex-1 bg-transparent border-none focus:outline-none text-body-md text-on-surface py-3 font-body-md" placeholder="Ask about this video..." type="text"/>
+<button class="p-3 m-1 rounded-lg bg-white/10 hover:bg-cyan-500/20 text-on-surface hover:text-cyan-400 transition-colors">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">send</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+<style>
+    /* Scoped scrollbar styling just for the internal containers to match aesthetic */
+    .custom-scrollbar::-webkit-scrollbar {
+        width: 4px;
+        height: 4px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-track {
+        background: transparent;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 4px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+        background: rgba(255, 255, 255, 0.2);
+    }
+</style></main></div>
+</body></html>
