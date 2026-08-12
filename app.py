@@ -426,7 +426,7 @@ def run_copilot_query(
     video_url: str,
     retrieved_chunks: list,
     api_key: str,
-    model_name: str = "gemini-3.5-flash-lite",
+    model_name: str = "gemini-3.6-flash",
     chat_history: list = None
 ) -> str:
     """Executes Copilot Query with Direct Video Metadata & Description Injection."""
@@ -451,10 +451,10 @@ Full Description:
 {context_text}
 
 === STRICT RESPONSE & FORMATTING RULES ===
-1. DIRECT NATURAL ANSWERS: Give thorough, well-structured, clear answers directly addressing what the user asked (like YouTube's "Ask Gemini" feature). Format key sections using bold text or bullet points.
-2. CLICKABLE TIMESTAMPS: Whenever mentioning a timestamp, chapter, quote, or key moment, format it as a clickable markdown timestamp link: [MM:SS](https://www.youtube.com/watch?v={v_id}&t=Xs) or [HH:MM:SS](https://www.youtube.com/watch?v={v_id}&t=Xs).
-3. NO INTERNAL MATH OR CONVERSIONS: Output ONLY clean markdown text and timestamp links. DO NOT print raw math formulas, seconds conversions, or scratchpad calculations (e.g. NEVER write "1:16:54 -> 3600 + 16*60 = 4614s").
-4. GROUNDED INTELLIGENCE: Rely on the video title, description, and captions provided above. If no spoken captions exist, use the full description. If information is not available, state: "The video description and captions do not contain this information."
+1. DIRECT NATURAL ANSWERS: Give thorough, well-structured, clear answers directly addressing what the user asked (like YouTube's official "Ask Gemini" feature). Format key sections using bold text or bullet points.
+2. CLICKABLE TIMESTAMPS: Whenever mentioning a timestamp, chapter, quote, song transition, or key moment, format it as a clickable markdown timestamp link: [MM:SS](https://www.youtube.com/watch?v={v_id}&t=Xs) or [HH:MM:SS](https://www.youtube.com/watch?v={v_id}&t=Xs).
+3. NO INTERNAL MATH OR CONVERSIONS: Output ONLY clean markdown text and timestamp links. DO NOT print raw math formulas, seconds conversions, or scratchpad calculations.
+4. HIGH-INTELLIGENCE VIDEO UNDERSTANDING: Rely on the video title, description, and captions provided above. If no spoken CC transcript captions exist (e.g. music mix playlists, background music videos, podcasts without subtitles, or uncaptioned videos), leverage your Gemini video and music intelligence to identify tracklists, song titles, artists, timestamps, topics, and content accurately.
 """
 
     messages = [("system", system_prompt)]
@@ -470,7 +470,7 @@ Full Description:
 
     prompt = ChatPromptTemplate.from_messages(messages)
     
-    model_to_use = model_name or "gemini-3.5-flash-lite"
+    model_to_use = model_name or "gemini-3.6-flash"
     llm = ChatGoogleGenerativeAI(model=model_to_use, google_api_key=api_key, temperature=0.1)
     chain = prompt | llm
 
