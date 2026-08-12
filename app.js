@@ -47,10 +47,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const clearChatBtn = document.getElementById('clear-chat-btn');
     const micBtn = document.getElementById('mic-btn');
     const suggestionBtns = document.querySelectorAll('.suggestion-btn');
-    const settingsForm = document.getElementById('settings-form');
-    const modelSelect = document.getElementById('model-select');
-    const topKRange = document.getElementById('top-k-range');
-    const topKVal = document.getElementById('top-k-val');
     const toastContainer = document.getElementById('toast-container');
 
     // --- 1. TOAST NOTIFICATIONS ---
@@ -281,8 +277,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     metadata: activeMetadata,
                     transcriptText: transcriptTextToPass,
                     prompt: userText,
-                    model: modelSelect.value,
-                    apiKey: savedApiKey
+                    model: 'gemini-3.6-flash'
                 })
             });
 
@@ -400,12 +395,5 @@ document.addEventListener('DOMContentLoaded', () => {
             };
         });
     }
-
-    topKRange.addEventListener('input', () => topKVal.textContent = topKRange.value);
-
-    settingsForm.addEventListener('submit', (e) => {
-        e.preventDefault();
-        showToast('Model preferences saved!', 'save');
-    });
 
 });

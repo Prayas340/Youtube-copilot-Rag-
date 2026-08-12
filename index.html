@@ -33,10 +33,6 @@
                     <span class="material-symbols-outlined">dashboard</span>
                     <span>Dashboard</span>
                 </a>
-                <a href="#" class="nav-link" data-view="model-settings">
-                    <span class="material-symbols-outlined">tune</span>
-                    <span>Model Settings</span>
-                </a>
             </nav>
 
             <div class="sidebar-footer">
@@ -207,44 +203,6 @@
                             </div>
                         </div>
 
-                    </div>
-                </div>
-
-                <!-- 2. MODEL SETTINGS VIEW -->
-                <div id="view-model-settings" class="page-view">
-                    <div class="settings-container">
-                        <div class="glass-card">
-                            <h2 style="font-family: var(--font-display); font-size: 20px; margin-bottom: 8px;">Model & Engine Preferences</h2>
-                            <p style="color: var(--text-muted); font-size: 14px; margin-bottom: 24px;">Select your preferred Gemini AI model architecture and retrieval parameters.</p>
-
-                            <form id="settings-form" style="display: flex; flex-direction: column; gap: 20px;">
-                                <div class="form-group">
-                                    <label class="form-label">Gemini AI Model Selection</label>
-                                    <select class="form-select" id="model-select">
-                                        <option value="gemini-3.5-flash">gemini-3.5-flash (Sub-second speed, recommended)</option>
-                                        <option value="gemini-flash-latest">gemini-flash-latest (Auto-updated Latest)</option>
-                                        <option value="gemini-3.1-pro-preview">gemini-3.1-pro-preview (Deep Technical Reasoning)</option>
-                                    </select>
-                                </div>
-
-                                <div class="form-group">
-                                    <label class="form-label">Vector Embedding Engine</label>
-                                    <input type="text" class="form-input" value="models/text-embedding-004 (Google High-Density Vector Store)" disabled style="opacity: 0.7;">
-                                </div>
-
-                                <div class="form-group">
-                                    <label class="form-label">Retrieval Top-K Chunks: <span id="top-k-val">4</span></label>
-                                    <input type="range" min="1" max="10" value="4" class="form-input" id="top-k-range">
-                                </div>
-
-                                <div style="display: flex; gap: 12px; margin-top: 12px;">
-                                    <button type="submit" class="btn-primary">
-                                        <span class="material-symbols-outlined" style="font-size: 18px;">save</span>
-                                        Save Preferences
-                                    </button>
-                                </div>
-                            </form>
-                        </div>
                     </div>
                 </div>
 
