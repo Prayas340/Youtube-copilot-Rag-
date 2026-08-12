@@ -1,0 +1,7 @@
+# Ignore Streamlit Python files so Vercel builds the Node.js / HTML web app smoothly
+app.py
+transcript_helper.py
+requirements.txt
+stitch_transcriptai_glass_dashboard/
+.env
+.env.local

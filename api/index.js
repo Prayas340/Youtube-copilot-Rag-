@@ -92,10 +92,10 @@ async function analyzeYouTubeVideo(videoId) {
     };
 }
 
-function callGeminiAPI(prompt, apiKey, model = "gemini-3.5-flash") {
+function callGeminiAPI(prompt, apiKey, model = "gemini-1.5-flash") {
     return new Promise((resolve, reject) => {
-        if (model.includes("1.5") || model.includes("2.0") || model.includes("2.5")) {
-            model = "gemini-3.5-flash";
+        if (!model || model.includes("3.5") || model.includes("3.1")) {
+            model = "gemini-1.5-flash";
         }
 
         const postData = JSON.stringify({
