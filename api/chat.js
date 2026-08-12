@@ -1,9 +1,9 @@
 const https = require('https');
 
-function callGeminiAPI(prompt, apiKey, model = "gemini-1.5-flash") {
+function callGeminiAPI(prompt, apiKey, model = "gemini-3.6-flash") {
     return new Promise((resolve, reject) => {
-        if (!model || model.includes("3.5") || model.includes("3.1")) {
-            model = "gemini-1.5-flash";
+        if (!model || model.includes("1.5") || model.includes("2.0") || model.includes("2.5")) {
+            model = "gemini-3.6-flash";
         }
 
         const postData = JSON.stringify({
@@ -29,7 +29,13 @@ function callGeminiAPI(prompt, apiKey, model = "gemini-1.5-flash") {
                 try {
                     const json = JSON.parse(body);
                     if (json.candidates && json.candidates[0] && json.candidates[0].content) {
-                        resolve(json.candidates[0].content.parts[0].text);
+                        const parts = json.candidates[0].content.parts || [];
+                        const textPart = parts.find(p => p.text);
+                        if (textPart) {
+                            resolve(textPart.text);
+                        } else {
+                            resolve(JSON.stringify(parts));
+                        }
                     } else if (json.error) {
                         reject(new Error(json.error.message || 'Gemini API Error'));
                     } else {
@@ -94,7 +100,7 @@ ${transcriptText || 'No spoken transcript captions available for this video.'}
 USER QUESTION:
 ${prompt}`;
 
-        const aiResponse = await callGeminiAPI(fullPrompt, keyToUse, model || 'gemini-1.5-flash');
+        const aiResponse = await callGeminiAPI(fullPrompt, keyToUse, model || 'gemini-3.6-flash');
         return res.status(200).json({ answer: aiResponse });
 
     } catch (e) {
