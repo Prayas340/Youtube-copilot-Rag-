@@ -5,7 +5,6 @@ const https = require('https');
 
 const PORT = 8000;
 
-// Secure .env File Parser (Loads local GOOGLE_API_KEY without external packages)
 try {
     const envPath = path.join(__dirname, '.env');
     if (fs.existsSync(envPath)) {
@@ -20,9 +19,7 @@ try {
             }
         });
     }
-} catch (e) {
-    console.warn("Notice: .env file not found or could not be loaded.");
-}
+} catch (e) {}
 
 const MIME_TYPES = {
     '.html': 'text/html',
@@ -88,7 +85,6 @@ async function analyzeYouTubeVideo(videoId) {
     let description = "No video description available.";
     let captions = [];
 
-    // 1. oEmbed metadata
     try {
         const oembedRaw = await httpGet(`https://www.youtube.com/oembed?url=https://www.youtube.com/watch?v=${videoId}&format=json`);
         const oembed = JSON.parse(oembedRaw);
@@ -96,7 +92,6 @@ async function analyzeYouTubeVideo(videoId) {
         channel = oembed.author_name || channel;
     } catch (e) {}
 
-    // 2. Fetch Watch Page & Captions
     try {
         const html = await httpGet(`https://www.youtube.com/watch?v=${videoId}`);
         const match = html.match(/ytInitialPlayerResponse\s*=\s*({.+?});/);
@@ -117,11 +112,7 @@ async function analyzeYouTubeVideo(videoId) {
 
     return {
         video_id: videoId,
-        metadata: {
-            title,
-            channel,
-            description
-        },
+        metadata: { title, channel, description },
         count: captions.length,
         transcript: captions
     };
@@ -162,9 +153,7 @@ function callGeminiAPI(prompt, apiKey, model = "gemini-3.6-flash") {
                     } else {
                         reject(new Error('Unexpected Gemini API response structure'));
                     }
-                } catch (e) {
-                    reject(e);
-                }
+                } catch (e) { reject(e); }
             });
         });
 
@@ -179,11 +168,7 @@ function parseJsonBody(req) {
         let body = '';
         req.on('data', chunk => body += chunk.toString());
         req.on('end', () => {
-            try {
-                resolve(body ? JSON.parse(body) : {});
-            } catch (e) {
-                reject(e);
-            }
+            try { resolve(body ? JSON.parse(body) : {}); } catch (e) { reject(e); }
         });
     });
 }
@@ -191,22 +176,17 @@ function parseJsonBody(req) {
 const server = http.createServer(async (req, res) => {
     let reqUrl = req.url.split('?')[0];
 
-    // API ENDPOINT: Analyze Video
     if (req.method === 'POST' && reqUrl === '/api/analyze') {
         try {
             const data = await parseJsonBody(req);
-            const youtubeUrl = data.youtubeUrl || '';
-            const videoId = extractVideoId(youtubeUrl);
-            
+            const videoId = extractVideoId(data.youtubeUrl || '');
             if (!videoId) {
                 res.writeHead(400, { 'Content-Type': 'application/json' });
                 return res.end(JSON.stringify({ error: 'Invalid YouTube URL or Video ID' }));
             }
-
             const analysisResult = await analyzeYouTubeVideo(videoId);
             res.writeHead(200, { 'Content-Type': 'application/json' });
             res.end(JSON.stringify(analysisResult));
-
         } catch (e) {
             res.writeHead(500, { 'Content-Type': 'application/json' });
             res.end(JSON.stringify({ error: e.message }));
@@ -214,18 +194,15 @@ const server = http.createServer(async (req, res) => {
         return;
     }
 
-    // API ENDPOINT: Chat with Gemini AI
     if (req.method === 'POST' && reqUrl === '/api/chat') {
         try {
             const data = await parseJsonBody(req);
             const { videoId, metadata, transcriptText, prompt, apiKey, model } = data;
-            
-            // Secure API key retrieval from environment variables
             const keyToUse = apiKey || process.env.GOOGLE_API_KEY;
 
             if (!keyToUse) {
                 res.writeHead(400, { 'Content-Type': 'application/json' });
-                return res.end(JSON.stringify({ error: 'Google Gemini API key missing. Please configure GOOGLE_API_KEY in your .env file.' }));
+                return res.end(JSON.stringify({ error: 'Google Gemini API key missing.' }));
             }
 
             const metaTitle = metadata ? metadata.title : "YouTube Video";
@@ -244,19 +221,12 @@ ${metaDesc}
 === VIDEO CAPTIONS & TRANSCRIPT ===
 ${transcriptText || 'No spoken transcript captions available for this video.'}
 
-=== STRICT ANSWERING RULES ===
-1. ANSWER ANY QUESTION: Provide direct, thorough, comprehensive, and high-intelligence answers to ANY question asked about this video's content, concepts, arguments, code, speakers, or topics.
-2. CLICKABLE TIMESTAMPS: Always include clickable Markdown timestamp links using format: [MM:SS](https://www.youtube.com/watch?v=${videoId}&t=Xs) whenever referencing key events, timestamps, quotes, or chapters.
-3. MUSIC MIXES & TRACKLISTS: Inspect the FULL DESCRIPTION field first for tracklists. If no tracklist exists in the description or captions, state: "No written tracklist was found in the video metadata." DO NOT invent fake song names.
-4. NO HALLUCINATIONS: If the question answer is not present in either the description or transcript, explicitly state: "The video description and captions do not contain this information."
-
 USER QUESTION:
 ${prompt}`;
 
             const aiResponse = await callGeminiAPI(fullPrompt, keyToUse, model || 'gemini-3.5-flash');
             res.writeHead(200, { 'Content-Type': 'application/json' });
             res.end(JSON.stringify({ answer: aiResponse }));
-
         } catch (e) {
             res.writeHead(500, { 'Content-Type': 'application/json' });
             res.end(JSON.stringify({ error: e.message }));
@@ -264,7 +234,6 @@ ${prompt}`;
         return;
     }
 
-    // STATIC FILE SERVING
     let filePath = path.join(__dirname, reqUrl === '/' ? 'index.html' : reqUrl);
     let extname = path.extname(filePath).toLowerCase();
     let contentType = MIME_TYPES[extname] || 'application/octet-stream';
@@ -279,18 +248,12 @@ ${prompt}`;
                 res.end(`Server Error: ${error.code}`, 'utf-8');
             }
         } else {
-            res.writeHead(200, { 
-                'Content-Type': contentType,
-                'Cache-Control': 'no-cache'
-            });
+            res.writeHead(200, { 'Content-Type': contentType, 'Cache-Control': 'no-cache' });
             res.end(content, 'utf-8');
         }
     });
 });
 
 server.listen(PORT, () => {
-    console.log(`====================================================`);
-    console.log(`🚀 YouTube Copilot Gemini 3.5 Flash Engine Live!`);
-    console.log(`🔗 Localhost Link: http://localhost:${PORT}/`);
-    console.log(`====================================================`);
+    console.log(`🚀 YouTube Copilot Gemini 3.5 Flash Engine Live on port ${PORT}`);
 });

@@ -32,26 +32,18 @@ function callGeminiAPI(prompt, apiKey, model = "gemini-3.6-flash") {
                     if (json.candidates && json.candidates[0] && json.candidates[0].content) {
                         const parts = json.candidates[0].content.parts || [];
                         const textPart = parts.find(p => p.text);
-                        if (textPart) {
-                            resolve(textPart.text);
-                        } else {
-                            resolve(JSON.stringify(parts));
-                        }
+                        if (textPart) resolve(textPart.text);
+                        else resolve(JSON.stringify(parts));
                     } else if (json.error) {
                         reject(new Error(json.error.message || 'Gemini API Error'));
                     } else {
                         reject(new Error('Unexpected Gemini API response structure'));
                     }
-                } catch (e) {
-                    reject(e);
-                }
+                } catch (e) { reject(e); }
             });
         });
 
-        req.setTimeout(12000, () => {
-            req.destroy(new Error('Gemini API request timed out'));
-        });
-
+        req.setTimeout(12000, () => { req.destroy(new Error('Gemini API request timed out')); });
         req.on('error', (e) => reject(e));
         req.write(postData);
         req.end();
@@ -63,15 +55,11 @@ module.exports = async (req, res) => {
     res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
     res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
 
-    if (req.method === 'OPTIONS') {
-        return res.status(200).send('OK');
-    }
+    if (req.method === 'OPTIONS') return res.status(200).send('OK');
 
     try {
         let body = req.body || {};
-        if (typeof body === 'string') {
-            try { body = JSON.parse(body); } catch(e) { body = {}; }
-        }
+        if (typeof body === 'string') { try { body = JSON.parse(body); } catch(e) { body = {}; } }
 
         const DEFAULT_KEY = Buffer.from('QVEuQWI4Uk42S0pqN0Z0aXBHYS1ra09YTzRfM3RLTVF2MGdKNzFXVFVqcTlrbVdjczh3R1E=', 'base64').toString('utf-8');
         const { videoId, metadata, transcriptText, prompt, apiKey, model } = body;
@@ -95,11 +83,6 @@ ${metaDesc}
 === SPOKEN TRANSCRIPT CAPTIONS ===
 ${transcriptText || 'No spoken transcript captions available for this video.'}
 
-=== INSTRUCTIONS & RULES ===
-1. COMPREHENSIVE ANSWERING: Provide direct, high-intelligence, and detailed answers to the user's question. Explain key points, topics, code, concepts, or details covered in this video.
-2. CLICKABLE TIMESTAMPS: Whenever you reference key events, timestamps, topics, or quotes from the transcript/description, include clickable Markdown timestamp links using format: [MM:SS](https://www.youtube.com/watch?v=${videoId}&t=Xs).
-3. EXCELLENT FORMATTING: Use clean Markdown with bold headings, bullet points, and code blocks if relevant.
-
 USER QUESTION:
 ${prompt}`;
 
@@ -107,7 +90,6 @@ ${prompt}`;
             const aiResponse = await callGeminiAPI(fullPrompt, keyToUse, model || 'gemini-3.6-flash');
             return res.status(200).json({ answer: aiResponse });
         } catch (err) {
-            console.error('Gemini API call error:', err.message);
             return res.status(500).json({ error: err.message || 'Gemini API Error' });
         }
 
