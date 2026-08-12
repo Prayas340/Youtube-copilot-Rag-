@@ -92,22 +92,13 @@ async function analyzeYouTubeVideo(videoId) {
     };
 }
 
-function sendResponse(res, statusCode, data) {
-    res.statusCode = statusCode;
+module.exports = async (req, res) => {
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
     res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
-    res.setHeader('Content-Type', 'application/json');
-    res.end(JSON.stringify(data));
-}
 
-module.exports = async (req, res) => {
     if (req.method === 'OPTIONS') {
-        res.statusCode = 200;
-        res.setHeader('Access-Control-Allow-Origin', '*');
-        res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
-        res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
-        return res.end();
+        return res.status(200).send('OK');
     }
 
     try {
@@ -120,12 +111,12 @@ module.exports = async (req, res) => {
         const videoId = extractVideoId(youtubeUrl);
 
         if (!videoId) {
-            return sendResponse(res, 400, { error: 'Invalid YouTube URL or Video ID' });
+            return res.status(400).json({ error: 'Invalid YouTube URL or Video ID' });
         }
 
         const result = await analyzeYouTubeVideo(videoId);
-        return sendResponse(res, 200, result);
+        return res.status(200).json(result);
     } catch (e) {
-        return sendResponse(res, 500, { error: e.message || 'Internal Server Error' });
+        return res.status(500).json({ error: e.message || 'Internal Server Error' });
     }
 };

@@ -47,22 +47,13 @@ function callGeminiAPI(prompt, apiKey, model = "gemini-1.5-flash") {
     });
 }
 
-function sendResponse(res, statusCode, data) {
-    res.statusCode = statusCode;
+module.exports = async (req, res) => {
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
     res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
-    res.setHeader('Content-Type', 'application/json');
-    res.end(JSON.stringify(data));
-}
 
-module.exports = async (req, res) => {
     if (req.method === 'OPTIONS') {
-        res.statusCode = 200;
-        res.setHeader('Access-Control-Allow-Origin', '*');
-        res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
-        res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
-        return res.end();
+        return res.status(200).send('OK');
     }
 
     try {
@@ -75,7 +66,7 @@ module.exports = async (req, res) => {
         const keyToUse = apiKey || process.env.GOOGLE_API_KEY;
 
         if (!keyToUse) {
-            return sendResponse(res, 400, { error: 'Google Gemini API key missing. Please configure GOOGLE_API_KEY in Vercel Environment Variables.' });
+            return res.status(400).json({ error: 'Google Gemini API key missing. Please configure GOOGLE_API_KEY in Vercel Environment Variables.' });
         }
 
         const metaTitle = metadata ? metadata.title : "YouTube Video";
@@ -104,9 +95,9 @@ USER QUESTION:
 ${prompt}`;
 
         const aiResponse = await callGeminiAPI(fullPrompt, keyToUse, model || 'gemini-1.5-flash');
-        return sendResponse(res, 200, { answer: aiResponse });
+        return res.status(200).json({ answer: aiResponse });
 
     } catch (e) {
-        return sendResponse(res, 500, { error: e.message || 'Internal Server Error' });
+        return res.status(500).json({ error: e.message || 'Internal Server Error' });
     }
 };
