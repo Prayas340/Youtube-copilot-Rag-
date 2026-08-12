@@ -1,0 +1,13 @@
+{
+  "name": "youtube-copilot",
+  "version": "1.0.0",
+  "private": true,
+  "description": "YouTube Copilot - Universal Video Intelligence",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
