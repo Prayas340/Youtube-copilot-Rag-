@@ -55,8 +55,14 @@ document.addEventListener('DOMContentLoaded', () => {
     const clearChatBtn = document.getElementById('clear-chat-btn');
     const micBtn = document.getElementById('mic-btn');
     const suggestionBtns = document.querySelectorAll('.suggestion-btn');
+    const toastContainer = document.getElementById('toast-container');
+
     // --- 1. TOAST NOTIFICATIONS ---
     function showToast(message, icon = 'check_circle') {
+        if (!toastContainer) {
+            console.log(`[Notification]: ${message}`);
+            return;
+        }
         const toast = document.createElement('div');
         toast.className = 'toast';
         toast.innerHTML = `<span class="material-symbols-outlined" style="color: var(--primary-cyan);">${icon}</span><span>${message}</span>`;
@@ -225,32 +231,38 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     attachTimestampListeners();
 
-    analyzeBtn.addEventListener('click', () => {
-        const url = youtubeUrlInput.value.trim();
-        if (!url) {
-            showToast('Please paste a YouTube URL to analyze', 'warning');
-            return;
-        }
-        loadAndAnalyzeVideo(url);
-    });
-
-    youtubeUrlInput.addEventListener('keypress', (e) => {
-        if (e.key === 'Enter') {
-            const url = youtubeUrlInput.value.trim();
-            if (url) loadAndAnalyzeVideo(url);
-        }
-    });
-
-    sampleChips.forEach(chip => {
-        chip.addEventListener('click', () => {
-            sampleChips.forEach(c => c.classList.remove('active'));
-            chip.classList.add('active');
-            const videoId = chip.getAttribute('data-video-id');
-            const title = chip.getAttribute('data-title');
-            youtubeUrlInput.value = `https://www.youtube.com/watch?v=${videoId}`;
-            loadAndAnalyzeVideo(videoId, title);
+    if (analyzeBtn) {
+        analyzeBtn.addEventListener('click', () => {
+            const url = youtubeUrlInput ? youtubeUrlInput.value.trim() : '';
+            if (!url) {
+                showToast('Please paste a YouTube URL to analyze', 'warning');
+                return;
+            }
+            loadAndAnalyzeVideo(url);
         });
-    });
+    }
+
+    if (youtubeUrlInput) {
+        youtubeUrlInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                const url = youtubeUrlInput.value.trim();
+                if (url) loadAndAnalyzeVideo(url);
+            }
+        });
+    }
+
+    if (sampleChips) {
+        sampleChips.forEach(chip => {
+            chip.addEventListener('click', () => {
+                sampleChips.forEach(c => c.classList.remove('active'));
+                chip.classList.add('active');
+                const videoId = chip.getAttribute('data-video-id');
+                const title = chip.getAttribute('data-title');
+                if (youtubeUrlInput) youtubeUrlInput.value = `https://www.youtube.com/watch?v=${videoId}`;
+                loadAndAnalyzeVideo(videoId, title);
+            });
+        });
+    }
 
     // --- 4. REAL GEMINI AI CHAT ENGINE ---
     async function sendChatMessage(userText) {
@@ -273,10 +285,10 @@ document.addEventListener('DOMContentLoaded', () => {
         const userRow = document.createElement('div');
         userRow.className = 'message-row user';
         userRow.innerHTML = `<div class="chat-bubble">${escapeHtml(userText)}</div>`;
-        chatMessagesArea.appendChild(userRow);
+        if (chatMessagesArea) chatMessagesArea.appendChild(userRow);
 
-        chatInputField.value = '';
-        chatMessagesArea.scrollTop = chatMessagesArea.scrollHeight;
+        if (chatInputField) chatInputField.value = '';
+        if (chatMessagesArea) chatMessagesArea.scrollTop = chatMessagesArea.scrollHeight;
 
         // Append Typing Indicator
         const typingRow = document.createElement('div');
@@ -291,8 +303,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 </div>
             </div>
         `;
-        chatMessagesArea.appendChild(typingRow);
-        chatMessagesArea.scrollTop = chatMessagesArea.scrollHeight;
+        if (chatMessagesArea) chatMessagesArea.appendChild(typingRow);
+        if (chatMessagesArea) chatMessagesArea.scrollTop = chatMessagesArea.scrollHeight;
 
         const transcriptTextToPass = activeTranscriptData.length > 0 
             ? activeTranscriptData.map(item => `[${item.formatted_time}] ${item.text}`).join('\n')
@@ -331,8 +343,8 @@ document.addEventListener('DOMContentLoaded', () => {
                         </div>
                     </div>
                 `;
-                chatMessagesArea.appendChild(aiRow);
-                chatMessagesArea.scrollTop = chatMessagesArea.scrollHeight;
+                if (chatMessagesArea) chatMessagesArea.appendChild(aiRow);
+                if (chatMessagesArea) chatMessagesArea.scrollTop = chatMessagesArea.scrollHeight;
                 attachTimestampListeners();
                 attachSourcesToggle();
             } else {
@@ -367,42 +379,52 @@ document.addEventListener('DOMContentLoaded', () => {
         return text.replace(/[&<>"']/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' }[m]));
     }
 
-    sendChatBtn.addEventListener('click', () => sendChatMessage(chatInputField.value));
-    chatInputField.addEventListener('keypress', (e) => { if (e.key === 'Enter') sendChatMessage(chatInputField.value); });
+    if (sendChatBtn) sendChatBtn.addEventListener('click', () => sendChatMessage(chatInputField ? chatInputField.value : ''));
+    if (chatInputField) chatInputField.addEventListener('keypress', (e) => { if (e.key === 'Enter') sendChatMessage(chatInputField.value); });
 
-    suggestionBtns.forEach(btn => {
-        btn.addEventListener('click', () => sendChatMessage(btn.getAttribute('data-prompt')));
-    });
+    if (suggestionBtns) {
+        suggestionBtns.forEach(btn => {
+            btn.addEventListener('click', () => sendChatMessage(btn.getAttribute('data-prompt')));
+        });
+    }
 
-    clearChatBtn.addEventListener('click', () => {
-        chatMessagesArea.innerHTML = `
-            <div class="chat-empty-state" id="chat-empty-state">
-                <div class="empty-state-badge">
-                    <span class="material-symbols-outlined" style="font-size: 18px; color: var(--primary-cyan);">auto_awesome</span>
-                    <span>AI Copilot Ready</span>
-                </div>
-                <h3 class="empty-state-title">Ask Any Question About Your Video</h3>
-                <p class="empty-state-subtitle">Paste a YouTube link above, then ask any type of question to analyze tracklists, tutorials, podcasts, or key moments.</p>
-            </div>
-        `;
-        showToast('Chat history cleared', 'delete_sweep');
-    });
+    if (clearChatBtn) {
+        clearChatBtn.addEventListener('click', () => {
+            if (chatMessagesArea) {
+                chatMessagesArea.innerHTML = `
+                    <div class="chat-empty-state" id="chat-empty-state">
+                        <div class="empty-state-badge">
+                            <span class="material-symbols-outlined" style="font-size: 18px; color: var(--primary-cyan);">auto_awesome</span>
+                            <span>AI Copilot Ready</span>
+                        </div>
+                        <h3 class="empty-state-title">Ask Any Question About Your Video</h3>
+                        <p class="empty-state-subtitle">Paste a YouTube link above, then ask any type of question to analyze tracklists, tutorials, podcasts, or key moments.</p>
+                    </div>
+                `;
+            }
+            showToast('Chat history cleared', 'delete_sweep');
+        });
+    }
 
     let isListening = false;
-    micBtn.addEventListener('click', () => {
-        isListening = !isListening;
-        micBtn.style.color = isListening ? 'var(--primary-cyan)' : 'var(--text-muted)';
-        if (isListening) {
-            showToast('Voice Mic Activated - Listening...', 'mic');
-            chatInputField.placeholder = "Listening...";
-            setTimeout(() => {
-                chatInputField.value = "Explain the key steps or tracklist in this video.";
-                chatInputField.placeholder = "Ask anything about this video...";
-                micBtn.style.color = 'var(--text-muted)';
-                isListening = false;
-            }, 2500);
-        }
-    });
+    if (micBtn) {
+        micBtn.addEventListener('click', () => {
+            isListening = !isListening;
+            micBtn.style.color = isListening ? 'var(--primary-cyan)' : 'var(--text-muted)';
+            if (isListening) {
+                showToast('Voice Mic Activated - Listening...', 'mic');
+                if (chatInputField) chatInputField.placeholder = "Listening...";
+                setTimeout(() => {
+                    if (chatInputField) {
+                        chatInputField.value = "Explain the key steps or tracklist in this video.";
+                        chatInputField.placeholder = "Ask anything about this video...";
+                    }
+                    micBtn.style.color = 'var(--text-muted)';
+                    isListening = false;
+                }, 2500);
+            }
+        });
+    }
 
     function attachSourcesToggle() {
         document.querySelectorAll('.sources-toggle').forEach(toggle => {
