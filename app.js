@@ -268,6 +268,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const savedApiKey = localStorage.getItem('google_api_key') || '';
 
+        const savedApiKey = localStorage.getItem('google_api_key') || '';
+
         try {
             const res = await fetch('/api/chat', {
                 method: 'POST',
@@ -277,7 +279,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     metadata: activeMetadata,
                     transcriptText: transcriptTextToPass,
                     prompt: userText,
-                    model: 'gemini-3.6-flash'
+                    model: 'gemini-3.6-flash',
+                    apiKey: savedApiKey
                 })
             });
 
@@ -307,25 +310,21 @@ document.addEventListener('DOMContentLoaded', () => {
                 attachSourcesToggle();
             } else {
                 showToast(data.error || 'Failed to generate answer', 'error');
-                if (data.error && data.error.toLowerCase().includes('api key')) {
-                    // Render interactive suggestion bubble to enter API key
+                if (data.error && (data.error.toLowerCase().includes('authentication') || data.error.toLowerCase().includes('api key') || data.error.toLowerCase().includes('credentials'))) {
                     const errRow = document.createElement('div');
                     errRow.className = 'message-row ai';
                     errRow.innerHTML = `
                         <div class="chat-bubble" style="border-color: rgba(255, 0, 127, 0.4); background: rgba(255, 0, 127, 0.08);">
-                            <strong>🔑 Google Gemini API Key Required</strong><br>
-                            To answer questions, please set <code>GOOGLE_API_KEY</code> in your Vercel Environment Variables, or enter your free API key in Model Settings.<br><br>
-                            <button id="open-settings-btn" class="btn-primary" style="padding: 6px 14px; font-size: 13px; margin-top: 4px;">
-                                ⚙️ Open Model Settings & Enter API Key
+                            <strong>🔑 Valid Gemini API Key Required (starts with <code>AIzaSy...</code>)</strong><br>
+                            Please paste a free Gemini API Key from Google AI Studio.<br><br>
+                            <button id="open-key-modal-btn" class="btn-primary" style="padding: 6px 14px; font-size: 13px; margin-top: 4px;">
+                                🔑 Enter Valid API Key
                             </button>
                         </div>
                     `;
                     chatMessagesArea.appendChild(errRow);
                     chatMessagesArea.scrollTop = chatMessagesArea.scrollHeight;
-                    document.getElementById('open-settings-btn').onclick = () => {
-                        const settingsLink = Array.from(navLinks).find(l => l.getAttribute('data-view') === 'model-settings');
-                        if (settingsLink) settingsLink.click();
-                    };
+                    document.getElementById('open-key-modal-btn').onclick = () => openKeyModal();
                 }
             }
 
@@ -394,6 +393,63 @@ document.addEventListener('DOMContentLoaded', () => {
                 icon.textContent = content.classList.contains('open') ? 'expand_less' : 'expand_more';
             };
         });
+    // --- API KEY MODAL LOGIC ---
+    const apiKeyBtn = document.getElementById('api-key-btn');
+    const keyModalOverlay = document.getElementById('key-modal-overlay');
+    const closeKeyModal = document.getElementById('close-key-modal');
+    const saveModalKeyBtn = document.getElementById('save-modal-key-btn');
+    const modalApiKeyInput = document.getElementById('modal-api-key-input');
+    const modalToggleKey = document.getElementById('modal-toggle-key');
+    const modalKeyEye = document.getElementById('modal-key-eye');
+
+    function openKeyModal() {
+        if (modalApiKeyInput) {
+            modalApiKeyInput.value = localStorage.getItem('google_api_key') || '';
+        }
+        if (keyModalOverlay) {
+            keyModalOverlay.style.display = 'flex';
+        }
+    }
+
+    function closeKeyModalFunc() {
+        if (keyModalOverlay) {
+            keyModalOverlay.style.display = 'none';
+        }
+    }
+
+    if (apiKeyBtn) apiKeyBtn.onclick = () => openKeyModal();
+    if (closeKeyModal) closeKeyModal.onclick = () => closeKeyModalFunc();
+    
+    if (keyModalOverlay) {
+        keyModalOverlay.onclick = (e) => {
+            if (e.target === keyModalOverlay) closeKeyModalFunc();
+        };
+    }
+
+    if (modalToggleKey && modalApiKeyInput && modalKeyEye) {
+        modalToggleKey.onclick = () => {
+            if (modalApiKeyInput.type === 'password') {
+                modalApiKeyInput.type = 'text';
+                modalKeyEye.textContent = 'visibility_off';
+            } else {
+                modalApiKeyInput.type = 'password';
+                modalKeyEye.textContent = 'visibility';
+            }
+        };
+    }
+
+    if (saveModalKeyBtn && modalApiKeyInput) {
+        saveModalKeyBtn.onclick = () => {
+            const val = modalApiKeyInput.value.trim();
+            if (val) {
+                localStorage.setItem('google_api_key', val);
+                showToast('Gemini API key saved!', 'key');
+            } else {
+                localStorage.removeItem('google_api_key');
+                showToast('API key removed', 'delete');
+            }
+            closeKeyModalFunc();
+        };
     }
 
 });
