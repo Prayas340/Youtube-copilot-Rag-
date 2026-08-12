@@ -12,7 +12,7 @@ function httpGet(url) {
 
 function extractVideoId(urlOrId) {
     if (!urlOrId) return null;
-    urlOrId = urlOrId.strip ? urlOrId.strip() : urlOrId.trim();
+    urlOrId = String(urlOrId).trim();
     if (/^[a-zA-Z0-9_-]{11}$/.test(urlOrId)) return urlOrId;
     const match = urlOrId.match(/(?:v=|\/shorts\/|\/embed\/|youtu\.be\/)([a-zA-Z0-9_-]{11})/);
     return match ? match[1] : null;
@@ -92,13 +92,22 @@ async function analyzeYouTubeVideo(videoId) {
     };
 }
 
-module.exports = async (req, res) => {
+function sendResponse(res, statusCode, data) {
+    res.statusCode = statusCode;
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
     res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+    res.setHeader('Content-Type', 'application/json');
+    res.end(JSON.stringify(data));
+}
 
+module.exports = async (req, res) => {
     if (req.method === 'OPTIONS') {
-        return res.status(200).end();
+        res.statusCode = 200;
+        res.setHeader('Access-Control-Allow-Origin', '*');
+        res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+        res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+        return res.end();
     }
 
     try {
@@ -107,19 +116,16 @@ module.exports = async (req, res) => {
             try { body = JSON.parse(body); } catch(e) { body = {}; }
         }
 
-        const youtubeUrl = body.youtubeUrl || req.query.youtubeUrl || '';
+        const youtubeUrl = body.youtubeUrl || (req.query ? req.query.youtubeUrl : '') || '';
         const videoId = extractVideoId(youtubeUrl);
 
         if (!videoId) {
-            res.setHeader('Content-Type', 'application/json');
-            return res.status(400).end(JSON.stringify({ error: 'Invalid YouTube URL or Video ID' }));
+            return sendResponse(res, 400, { error: 'Invalid YouTube URL or Video ID' });
         }
 
         const result = await analyzeYouTubeVideo(videoId);
-        res.setHeader('Content-Type', 'application/json');
-        return res.status(200).end(JSON.stringify(result));
+        return sendResponse(res, 200, result);
     } catch (e) {
-        res.setHeader('Content-Type', 'application/json');
-        return res.status(500).end(JSON.stringify({ error: e.message }));
+        return sendResponse(res, 500, { error: e.message || 'Internal Server Error' });
     }
 };

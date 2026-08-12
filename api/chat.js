@@ -47,13 +47,22 @@ function callGeminiAPI(prompt, apiKey, model = "gemini-1.5-flash") {
     });
 }
 
-module.exports = async (req, res) => {
+function sendResponse(res, statusCode, data) {
+    res.statusCode = statusCode;
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
     res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+    res.setHeader('Content-Type', 'application/json');
+    res.end(JSON.stringify(data));
+}
 
+module.exports = async (req, res) => {
     if (req.method === 'OPTIONS') {
-        return res.status(200).end();
+        res.statusCode = 200;
+        res.setHeader('Access-Control-Allow-Origin', '*');
+        res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+        res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+        return res.end();
     }
 
     try {
@@ -66,8 +75,7 @@ module.exports = async (req, res) => {
         const keyToUse = apiKey || process.env.GOOGLE_API_KEY;
 
         if (!keyToUse) {
-            res.setHeader('Content-Type', 'application/json');
-            return res.status(400).end(JSON.stringify({ error: 'Google Gemini API key missing. Please configure GOOGLE_API_KEY in Vercel Environment Variables.' }));
+            return sendResponse(res, 400, { error: 'Google Gemini API key missing. Please configure GOOGLE_API_KEY in Vercel Environment Variables.' });
         }
 
         const metaTitle = metadata ? metadata.title : "YouTube Video";
@@ -96,11 +104,9 @@ USER QUESTION:
 ${prompt}`;
 
         const aiResponse = await callGeminiAPI(fullPrompt, keyToUse, model || 'gemini-1.5-flash');
-        res.setHeader('Content-Type', 'application/json');
-        return res.status(200).end(JSON.stringify({ answer: aiResponse }));
+        return sendResponse(res, 200, { answer: aiResponse });
 
     } catch (e) {
-        res.setHeader('Content-Type', 'application/json');
-        return res.status(500).end(JSON.stringify({ error: e.message }));
+        return sendResponse(res, 500, { error: e.message || 'Internal Server Error' });
     }
 };

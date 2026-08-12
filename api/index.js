@@ -1,12 +1,20 @@
-module.exports = async (req, res) => {
+function sendResponse(res, statusCode, data) {
+    res.statusCode = statusCode;
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
     res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+    res.setHeader('Content-Type', 'application/json');
+    res.end(JSON.stringify(data));
+}
 
+module.exports = async (req, res) => {
     if (req.method === 'OPTIONS') {
-        return res.status(200).end();
+        res.statusCode = 200;
+        res.setHeader('Access-Control-Allow-Origin', '*');
+        res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+        res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+        return res.end();
     }
 
-    res.setHeader('Content-Type', 'application/json');
-    res.status(200).end(JSON.stringify({ status: 'ok', message: 'YouTube Copilot API Engine Live' }));
+    return sendResponse(res, 200, { status: 'ok', message: 'YouTube Copilot API Engine Live' });
 };
