@@ -268,8 +268,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const savedApiKey = localStorage.getItem('google_api_key') || '';
 
-        const savedApiKey = localStorage.getItem('google_api_key') || '';
-
         try {
             const res = await fetch('/api/chat', {
                 method: 'POST',
@@ -388,11 +386,15 @@ document.addEventListener('DOMContentLoaded', () => {
         document.querySelectorAll('.sources-toggle').forEach(toggle => {
             toggle.onclick = () => {
                 const content = toggle.nextElementSibling;
-                content.classList.toggle('open');
-                const icon = toggle.querySelector('.material-symbols-outlined');
-                icon.textContent = content.classList.contains('open') ? 'expand_less' : 'expand_more';
+                if (content) {
+                    content.classList.toggle('open');
+                    const icon = toggle.querySelector('.material-symbols-outlined');
+                    if (icon) icon.textContent = content.classList.contains('open') ? 'expand_less' : 'expand_more';
+                }
             };
         });
+    }
+
     // --- API KEY MODAL LOGIC ---
     const apiKeyBtn = document.getElementById('api-key-btn');
     const keyModalOverlay = document.getElementById('key-modal-overlay');
