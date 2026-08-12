@@ -270,6 +270,8 @@ document.addEventListener('DOMContentLoaded', () => {
             ? activeTranscriptData.map(item => `[${item.formatted_time}] ${item.text}`).join('\n')
             : "[No spoken transcript captions available. Use video description and metadata]";
 
+        const savedApiKey = localStorage.getItem('google_api_key') || '';
+
         try {
             const res = await fetch('/api/chat', {
                 method: 'POST',
@@ -279,7 +281,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     metadata: activeMetadata,
                     transcriptText: transcriptTextToPass,
                     prompt: userText,
-                    model: modelSelect.value
+                    model: modelSelect.value,
+                    apiKey: savedApiKey
                 })
             });
 
@@ -309,6 +312,26 @@ document.addEventListener('DOMContentLoaded', () => {
                 attachSourcesToggle();
             } else {
                 showToast(data.error || 'Failed to generate answer', 'error');
+                if (data.error && data.error.toLowerCase().includes('api key')) {
+                    // Render interactive suggestion bubble to enter API key
+                    const errRow = document.createElement('div');
+                    errRow.className = 'message-row ai';
+                    errRow.innerHTML = `
+                        <div class="chat-bubble" style="border-color: rgba(255, 0, 127, 0.4); background: rgba(255, 0, 127, 0.08);">
+                            <strong>🔑 Google Gemini API Key Required</strong><br>
+                            To answer questions, please set <code>GOOGLE_API_KEY</code> in your Vercel Environment Variables, or enter your free API key in Model Settings.<br><br>
+                            <button id="open-settings-btn" class="btn-primary" style="padding: 6px 14px; font-size: 13px; margin-top: 4px;">
+                                ⚙️ Open Model Settings & Enter API Key
+                            </button>
+                        </div>
+                    `;
+                    chatMessagesArea.appendChild(errRow);
+                    chatMessagesArea.scrollTop = chatMessagesArea.scrollHeight;
+                    document.getElementById('open-settings-btn').onclick = () => {
+                        const settingsLink = Array.from(navLinks).find(l => l.getAttribute('data-view') === 'model-settings');
+                        if (settingsLink) settingsLink.click();
+                    };
+                }
             }
 
         } catch (e) {
@@ -380,9 +403,41 @@ document.addEventListener('DOMContentLoaded', () => {
 
     topKRange.addEventListener('input', () => topKVal.textContent = topKRange.value);
 
+    // API Key Storage & Toggle
+    const apiKeyInput = document.getElementById('api-key-input');
+    const toggleKeyBtn = document.getElementById('toggle-key-btn');
+    const keyEyeIcon = document.getElementById('key-eye-icon');
+
+    if (apiKeyInput) {
+        apiKeyInput.value = localStorage.getItem('google_api_key') || '';
+    }
+
+    if (toggleKeyBtn && apiKeyInput && keyEyeIcon) {
+        toggleKeyBtn.addEventListener('click', () => {
+            if (apiKeyInput.type === 'password') {
+                apiKeyInput.type = 'text';
+                keyEyeIcon.textContent = 'visibility_off';
+            } else {
+                apiKeyInput.type = 'password';
+                keyEyeIcon.textContent = 'visibility';
+            }
+        });
+    }
+
     settingsForm.addEventListener('submit', (e) => {
         e.preventDefault();
-        showToast('Model preferences saved!', 'save');
+        if (apiKeyInput) {
+            const keyVal = apiKeyInput.value.trim();
+            if (keyVal) {
+                localStorage.setItem('google_api_key', keyVal);
+                showToast('Gemini API key & preferences saved!', 'save');
+            } else {
+                localStorage.removeItem('google_api_key');
+                showToast('Model preferences saved!', 'save');
+            }
+        } else {
+            showToast('Model preferences saved!', 'save');
+        }
     });
 
 });

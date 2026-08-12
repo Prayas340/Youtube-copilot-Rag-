@@ -66,7 +66,7 @@ module.exports = async (req, res) => {
         const keyToUse = apiKey || process.env.GOOGLE_API_KEY;
 
         if (!keyToUse) {
-            return res.status(400).json({ error: 'Google Gemini API key missing. Please configure GOOGLE_API_KEY in Vercel Environment Variables.' });
+            return res.status(400).json({ error: 'Google Gemini API key missing. Please configure GOOGLE_API_KEY in Vercel Environment Variables or enter your key in Model Settings.' });
         }
 
         const metaTitle = metadata ? metadata.title : "YouTube Video";
