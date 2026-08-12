@@ -55,56 +55,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const clearChatBtn = document.getElementById('clear-chat-btn');
     const micBtn = document.getElementById('mic-btn');
     const suggestionBtns = document.querySelectorAll('.suggestion-btn');
-    const keySettingsBtn = document.getElementById('key-settings-btn');
-    const apiKeyModal = document.getElementById('api-key-modal');
-    const closeKeyModalBtn = document.getElementById('close-key-modal-btn');
-    const saveApiKeyBtn = document.getElementById('save-api-key-btn');
-    const clearApiKeyBtn = document.getElementById('clear-api-key-btn');
-    const modalApiKeyInput = document.getElementById('modal-api-key-input');
-
-    function openKeyModal() {
-        if (apiKeyModal) {
-            apiKeyModal.style.display = 'flex';
-            if (modalApiKeyInput) {
-                modalApiKeyInput.value = localStorage.getItem('google_api_key') || '';
-                modalApiKeyInput.focus();
-            }
-        }
-    }
-
-    function closeKeyModal() {
-        if (apiKeyModal) apiKeyModal.style.display = 'none';
-    }
-
-    if (keySettingsBtn) keySettingsBtn.addEventListener('click', openKeyModal);
-    if (closeKeyModalBtn) closeKeyModalBtn.addEventListener('click', closeKeyModal);
-    if (apiKeyModal) {
-        apiKeyModal.addEventListener('click', (e) => {
-            if (e.target === apiKeyModal) closeKeyModal();
-        });
-    }
-
-    if (saveApiKeyBtn) {
-        saveApiKeyBtn.addEventListener('click', () => {
-            const keyVal = modalApiKeyInput ? modalApiKeyInput.value.trim() : '';
-            if (keyVal) {
-                localStorage.setItem('google_api_key', keyVal);
-                showToast('Gemini API Key Saved Successfully!', 'key');
-                closeKeyModal();
-            } else {
-                showToast('Please paste a valid API key', 'warning');
-            }
-        });
-    }
-
-    if (clearApiKeyBtn) {
-        clearApiKeyBtn.addEventListener('click', () => {
-            localStorage.removeItem('google_api_key');
-            if (modalApiKeyInput) modalApiKeyInput.value = '';
-            showToast('Gemini API Key Cleared', 'delete');
-        });
-    }
-
     // --- 1. TOAST NOTIFICATIONS ---
     function showToast(message, icon = 'check_circle') {
         const toast = document.createElement('div');
@@ -348,8 +298,6 @@ document.addEventListener('DOMContentLoaded', () => {
             ? activeTranscriptData.map(item => `[${item.formatted_time}] ${item.text}`).join('\n')
             : "[No spoken transcript captions available. Use video description and metadata]";
 
-        const savedApiKey = localStorage.getItem('google_api_key') || '';
-
         try {
             const res = await fetch('/api/chat', {
                 method: 'POST',
@@ -359,8 +307,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     metadata: activeMetadata,
                     transcriptText: transcriptTextToPass,
                     prompt: userText,
-                    model: 'gemini-3.6-flash',
-                    apiKey: savedApiKey
+                    model: 'gemini-3.6-flash'
                 })
             });
 
@@ -388,16 +335,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 chatMessagesArea.scrollTop = chatMessagesArea.scrollHeight;
                 attachTimestampListeners();
                 attachSourcesToggle();
-            } else if (data.error && (data.error.includes('key missing') || data.error.includes('API key') || data.error.includes('API Key'))) {
-                showToast('Google Gemini API Key Required', 'key');
-                openKeyModal();
             } else {
                 showToast(data.error || 'Failed to generate answer', 'error');
             }
 
         } catch (e) {
             typingRow.remove();
-            showToast('API Connection Error. Click 🔑 Settings to check your API key.', 'error');
+            showToast('API Connection Error', 'error');
         }
     }
 
