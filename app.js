@@ -403,41 +403,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
     topKRange.addEventListener('input', () => topKVal.textContent = topKRange.value);
 
-    // API Key Storage & Toggle
-    const apiKeyInput = document.getElementById('api-key-input');
-    const toggleKeyBtn = document.getElementById('toggle-key-btn');
-    const keyEyeIcon = document.getElementById('key-eye-icon');
-
-    if (apiKeyInput) {
-        apiKeyInput.value = localStorage.getItem('google_api_key') || '';
-    }
-
-    if (toggleKeyBtn && apiKeyInput && keyEyeIcon) {
-        toggleKeyBtn.addEventListener('click', () => {
-            if (apiKeyInput.type === 'password') {
-                apiKeyInput.type = 'text';
-                keyEyeIcon.textContent = 'visibility_off';
-            } else {
-                apiKeyInput.type = 'password';
-                keyEyeIcon.textContent = 'visibility';
-            }
-        });
-    }
-
     settingsForm.addEventListener('submit', (e) => {
         e.preventDefault();
-        if (apiKeyInput) {
-            const keyVal = apiKeyInput.value.trim();
-            if (keyVal) {
-                localStorage.setItem('google_api_key', keyVal);
-                showToast('Gemini API key & preferences saved!', 'save');
-            } else {
-                localStorage.removeItem('google_api_key');
-                showToast('Model preferences saved!', 'save');
-            }
-        } else {
-            showToast('Model preferences saved!', 'save');
-        }
+        showToast('Model preferences saved!', 'save');
     });
 
 });
