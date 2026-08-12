@@ -196,7 +196,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 showToast(`Acquired ${data.transcript.length} transcript captions!`, 'check_circle');
             } else {
                 activeTranscriptData = [];
-                showToast('Metadata & Description acquired (No spoken captions)', 'info');
+                showToast('AI Multimodal Video Engine Ready (Music / Uncaptioned Video)', 'auto_awesome');
             }
 
         } catch (e) {
@@ -311,7 +311,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     metadata: activeMetadata,
                     transcriptText: transcriptTextToPass,
                     prompt: userText,
-                    model: 'gemini-3.5-flash-lite',
+                    model: 'gemini-3.6-flash',
                     apiKey: savedApiKey
                 })
             });
