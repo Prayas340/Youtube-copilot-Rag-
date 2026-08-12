@@ -3,23 +3,18 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>YouTube Copilot - Video Intelligence Dashboard</title>
+    <title>YouTube Copilot | Terminal Obsidian</title>
     
     <!-- Google Fonts & Material Symbols Outlined -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600;700;800&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
     
     <!-- Stylesheet -->
-    <link rel="stylesheet" href="styles.css?v=4.0">
+    <link rel="stylesheet" href="styles.css?v=5.0">
 </head>
 <body>
-    <!-- Ambient Animated Glow Backgrounds -->
-    <div class="ambient-glow ambient-glow-1"></div>
-    <div class="ambient-glow ambient-glow-2"></div>
-    <div class="ambient-glow ambient-glow-3"></div>
-
     <div id="app-container">
         <!-- Mobile Sidebar Backdrop Overlay -->
         <div id="sidebar-overlay" class="sidebar-overlay"></div>
@@ -28,7 +23,7 @@
         <aside id="sidebar">
             <div class="sidebar-header">
                 <div class="logo-icon">⚡</div>
-                <span class="logo-text">YouTube Copilot</span>
+                <span class="logo-text">YOUTUBE COPILOT</span>
                 <button class="icon-btn mobile-sidebar-close" id="mobile-sidebar-close-btn" title="Close Sidebar">
                     <span class="material-symbols-outlined">close</span>
                 </button>
@@ -42,7 +37,7 @@
             </nav>
 
             <div class="sidebar-footer">
-                <button id="sidebar-toggle-btn" title="Toggle Sidebar">
+                <button id="sidebar-toggle-btn" class="icon-btn" title="Toggle Sidebar">
                     <span class="material-symbols-outlined">chevron_left</span>
                 </button>
             </div>
@@ -57,14 +52,11 @@
                         <span class="material-symbols-outlined">menu</span>
                     </button>
                     <div class="header-title-container">
-                        <span class="header-page-title" id="page-title-heading">Video Intelligence Dashboard</span>
+                        <span class="header-page-title" id="page-title-heading">YOUTUBE COPILOT</span>
                     </div>
                 </div>
 
                 <div class="header-actions">
-                    <button class="icon-btn" id="theme-toggle" title="Toggle Theme">
-                        <span class="material-symbols-outlined">dark_mode</span>
-                    </button>
                     <button class="icon-btn" id="notifications-btn" title="Notifications">
                         <span class="material-symbols-outlined">notifications</span>
                     </button>
@@ -82,14 +74,14 @@
                         <span class="material-symbols-outlined search-icon">link</span>
                         <input type="text" id="youtube-url-input" class="search-input" placeholder="Paste YouTube URL or Video ID (e.g. https://www.youtube.com/watch?v=dQw4w9WgXcQ)..." value="">
                         <button id="analyze-btn" class="btn-primary">
-                            <span class="material-symbols-outlined" style="font-size: 18px;">auto_awesome</span>
-                            <span>Analyze</span>
+                            <span class="material-symbols-outlined" style="font-size: 16px;">bolt</span>
+                            <span>ANALYZE</span>
                         </button>
                     </div>
 
                     <!-- Preset Sample Video Chips -->
                     <div class="sample-videos-bar">
-                        <span style="font-size: 12px; color: var(--text-muted); display: flex; align-items: center; margin-right: 4px;">Or try sample Demos:</span>
+                        <span style="font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--text-secondary); display: flex; align-items: center; margin-right: 4px; text-transform: uppercase;">PRESETS:</span>
                         <button class="sample-chip" data-video-id="AlpvszL-CvR" data-title="Mastering AI Workflows in 2024">
                             <span class="material-symbols-outlined" style="font-size:14px;">play_circle</span>
                             Mastering AI Workflows
@@ -112,25 +104,25 @@
                             
                             <!-- INITIAL UNLOADED STATE PLACEHOLDER CARD -->
                             <div class="glass-card" id="video-placeholder-card" style="display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 48px 24px; min-height: 400px;">
-                                <div style="width: 64px; height: 64px; border-radius: 50%; background: rgba(0, 240, 255, 0.1); border: 1px solid rgba(0, 240, 255, 0.3); display: flex; align-items: center; justify-content: center; color: var(--primary-cyan); margin-bottom: 20px; animation: logoPulse 3s ease-in-out infinite alternate;">
-                                    <span class="material-symbols-outlined" style="font-size: 32px;">smart_display</span>
+                                <div style="width: 56px; height: 56px; border-radius: 6px; background: #18181b; border: 1px solid #27272a; display: flex; align-items: center; justify-content: center; color: #ffffff; margin-bottom: 20px;">
+                                    <span class="material-symbols-outlined" style="font-size: 28px;">smart_display</span>
                                 </div>
-                                <h3 style="font-family: var(--font-display); font-size: 22px; font-weight: 800; color: var(--text-primary); margin-bottom: 8px; background: linear-gradient(135deg, #ffffff 0%, #00f0ff 50%, #ff007f 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">Paste a YouTube URL to Begin</h3>
-                                <p style="font-size: 14px; color: var(--text-muted); max-width: 380px; line-height: 1.6; margin-bottom: 24px;">Enter any YouTube video link above or click one of the sample chips to load the video and activate AI transcript intelligence.</p>
+                                <h3 style="font-family: 'Geist', sans-serif; font-size: 20px; font-weight: 700; color: #ffffff; margin-bottom: 8px;">[ VIDEO STREAM OFFLINE ]</h3>
+                                <p style="font-family: 'JetBrains Mono', monospace; font-size: 13px; color: var(--text-secondary); max-width: 420px; line-height: 1.6; margin-bottom: 24px;">PASTE A YOUTUBE URL OR VIDEO ID ABOVE TO INITIALIZE AI CONTEXT PIPELINE.</p>
                                 <div style="display: flex; gap: 8px; flex-wrap: wrap; justify-content: center;">
-                                    <span class="pill-badge pill-cyan">
-                                        <span class="material-symbols-outlined" style="font-size: 14px;">music_note</span> Music Mixes
+                                    <span class="pill-badge">
+                                        <span class="material-symbols-outlined" style="font-size: 14px;">music_note</span> MUSIC MIXES
                                     </span>
-                                    <span class="pill-badge pill-indigo">
-                                        <span class="material-symbols-outlined" style="font-size: 14px;">school</span> Tutorials
+                                    <span class="pill-badge">
+                                        <span class="material-symbols-outlined" style="font-size: 14px;">school</span> TUTORIALS
                                     </span>
-                                    <span class="pill-badge pill-purple">
-                                        <span class="material-symbols-outlined" style="font-size: 14px;">podcasts</span> Podcasts
+                                    <span class="pill-badge">
+                                        <span class="material-symbols-outlined" style="font-size: 14px;">podcasts</span> PODCASTS
                                     </span>
                                 </div>
                             </div>
 
-                            <!-- LOADED VIDEO PLAYER CARD (HIDDEN BY DEFAULT UNTIL URL IS SUBMITTED) -->
+                            <!-- LOADED VIDEO PLAYER CARD -->
                             <div class="glass-card" id="loaded-video-card" style="display: none;">
                                 <div class="video-player-wrapper">
                                     <iframe id="youtube-player" src="" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
@@ -138,13 +130,13 @@
                                 <div class="video-info-header">
                                     <h3 class="video-title" id="active-video-title">YouTube Video</h3>
                                     <div class="badges-container">
-                                        <span class="pill-badge pill-cyan">
-                                            <span class="material-symbols-outlined" style="font-size: 14px;">auto_awesome</span> Video Loaded
+                                        <span class="pill-badge">
+                                            <span class="material-symbols-outlined" style="font-size: 14px;">auto_awesome</span> LOADED
                                         </span>
-                                        <span class="pill-badge pill-indigo">
-                                            <span class="material-symbols-outlined" style="font-size: 14px;">closed_caption</span> Transcript Ready
+                                        <span class="pill-badge">
+                                            <span class="material-symbols-outlined" style="font-size: 14px;">closed_caption</span> CAPTIONS READY
                                         </span>
-                                        <span class="pill-badge pill-purple" id="video-id-badge">
+                                        <span class="pill-badge" id="video-id-badge">
                                             ID: --
                                         </span>
                                     </div>
@@ -160,11 +152,11 @@
                                 <div class="chat-header">
                                     <div class="chat-avatar-title">
                                         <div class="avatar-ai">
-                                            <span class="material-symbols-outlined" style="font-size: 20px;">smart_toy</span>
+                                            <span class="material-symbols-outlined" style="font-size: 18px;">smart_toy</span>
                                         </div>
                                         <div>
-                                            <div class="chat-title-text">Transcript Assistant</div>
-                                            <div class="chat-subtitle-text">Context grounded: <span id="chat-context-title">Awaiting Video Link...</span></div>
+                                            <div class="chat-title-text">Conversational Copilot</div>
+                                            <div class="chat-subtitle-text">CONTEXT: <span id="chat-context-title">AWAITING URL...</span></div>
                                         </div>
                                     </div>
                                     <button class="icon-btn" id="clear-chat-btn" title="Clear Chat History">
@@ -174,14 +166,14 @@
 
                                 <!-- Chat Messages Area -->
                                 <div class="chat-messages custom-scrollbar" id="chat-messages-area">
-                                    <!-- Animated Empty State (Vanshes on First Message) -->
+                                    <!-- Initial Monospace State -->
                                     <div class="chat-empty-state" id="chat-empty-state">
                                         <div class="empty-state-badge">
-                                            <span class="material-symbols-outlined" style="font-size: 18px; color: var(--primary-cyan);">auto_awesome</span>
-                                            <span>AI Copilot Ready</span>
+                                            <span class="material-symbols-outlined" style="font-size: 16px; color: #ffffff;">bolt</span>
+                                            <span>COPILOT INITIALIZED</span>
                                         </div>
                                         <h3 class="empty-state-title">Ask Any Question About Your Video</h3>
-                                        <p class="empty-state-subtitle">Paste a YouTube link above, then ask any type of question to analyze tracklists, tutorials, podcasts, or key moments.</p>
+                                        <p class="empty-state-subtitle">Paste a YouTube link above, then ask any question to analyze tracklists, tutorials, podcasts, or timestamps.</p>
                                     </div>
                                 </div>
 
@@ -190,24 +182,24 @@
                                     <!-- Prompt Suggestion Chips -->
                                     <div class="suggestion-chips-row">
                                         <button class="suggestion-btn" data-prompt="Summarize key points discussed in this video">
-                                            <span class="material-symbols-outlined" style="font-size: 14px;">summarize</span> Summarize key points
+                                            <span class="material-symbols-outlined" style="font-size: 14px;">summarize</span> SUMMARIZE
                                         </button>
                                         <button class="suggestion-btn" data-prompt="List all actionable code examples or action items">
-                                            <span class="material-symbols-outlined" style="font-size: 14px;">list_alt</span> Action items
+                                            <span class="material-symbols-outlined" style="font-size: 14px;">list_alt</span> ACTION ITEMS
                                         </button>
                                         <button class="suggestion-btn" data-prompt="Extract timestamps for all major chapters">
-                                            <span class="material-symbols-outlined" style="font-size: 14px;">timer</span> Extract timestamps
+                                            <span class="material-symbols-outlined" style="font-size: 14px;">timer</span> TIMESTAMPS
                                         </button>
                                     </div>
 
                                     <!-- Chat Input Bar -->
                                     <div class="chat-input-bar">
                                         <button class="icon-btn" id="mic-btn" title="Voice Input" style="border: none; background: transparent;">
-                                            <span class="material-symbols-outlined" style="font-size: 20px;">mic</span>
+                                            <span class="material-symbols-outlined" style="font-size: 18px;">mic</span>
                                         </button>
-                                        <input type="text" id="chat-input-field" class="chat-input-field" placeholder="Ask anything about this video transcript...">
+                                        <input type="text" id="chat-input-field" class="chat-input-field" placeholder="Ask a question about this video...">
                                         <button class="send-btn" id="send-chat-btn" title="Send Message">
-                                            <span class="material-symbols-outlined" style="font-size: 18px;">send</span>
+                                            <span class="material-symbols-outlined" style="font-size: 16px;">arrow_upward</span>
                                         </button>
                                     </div>
                                 </div>
@@ -224,6 +216,6 @@
     <!-- Toast Notification Container -->
     <div class="toast-container" id="toast-container"></div>
 
-    <script src="app.js?v=4.0"></script>
+    <script src="app.js?v=5.0"></script>
 </body>
 </html>

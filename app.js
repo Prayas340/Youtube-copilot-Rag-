@@ -106,10 +106,8 @@ document.addEventListener('DOMContentLoaded', () => {
             if (targetView === 'dashboard') pageTitleHeading.textContent = 'Universal Video Intelligence';
             if (targetView === 'model-settings') pageTitleHeading.textContent = 'Model & Engine Settings';
 
-            // Close sidebar on mobile/tablet after clicking navigation item
-            if (window.innerWidth <= 1024) {
-                closeMobileSidebar();
-            }
+            // Close sidebar on mobile after clicking navigation item
+            closeMobileSidebar();
         });
     });
 
@@ -117,14 +115,16 @@ document.addEventListener('DOMContentLoaded', () => {
         sidebarToggleBtn.addEventListener('click', () => document.body.classList.toggle('sidebar-collapsed'));
     }
 
-    let isDark = true;
-    themeToggleBtn.addEventListener('click', () => {
-        isDark = !isDark;
-        document.body.classList.toggle('light-theme', !isDark);
-        const icon = themeToggleBtn.querySelector('.material-symbols-outlined');
-        icon.textContent = isDark ? 'dark_mode' : 'light_mode';
-        showToast(isDark ? 'Dark Obsidian Theme Enabled' : 'Light Theme Enabled', isDark ? 'dark_mode' : 'light_mode');
-    });
+    if (themeToggleBtn) {
+        let isDark = true;
+        themeToggleBtn.addEventListener('click', () => {
+            isDark = !isDark;
+            document.body.classList.toggle('light-theme', !isDark);
+            const icon = themeToggleBtn.querySelector('.material-symbols-outlined');
+            if (icon) icon.textContent = isDark ? 'dark_mode' : 'light_mode';
+            showToast(isDark ? 'Dark Obsidian Theme Enabled' : 'Light Theme Enabled', isDark ? 'dark_mode' : 'light_mode');
+        });
+    }
 
     function extractVideoId(urlOrId) {
         if (!urlOrId) return null;
@@ -134,192 +134,249 @@ document.addEventListener('DOMContentLoaded', () => {
         return match ? match[1] : null;
     }
 
-    async function loadVideoData(videoId) {
-        currentVideoId = videoId;
-        showToast('Loading Video Metadata & Captions...', 'cloud_download');
-        
-        youtubePlayer.src = `https://www.youtube.com/embed/${videoId}?autoplay=1&enablejsapi=1`;
-        videoPlaceholderCard.style.display = 'none';
-        loadedVideoCard.style.display = 'block';
+    function seekToTimestamp(seconds) {
+        if (youtubePlayer && youtubePlayer.contentWindow) {
+            youtubePlayer.contentWindow.postMessage(JSON.stringify({
+                event: 'command',
+                func: 'seekTo',
+                args: [seconds, true]
+            }), '*');
+            youtubePlayer.contentWindow.postMessage(JSON.stringify({
+                event: 'command',
+                func: 'playVideo',
+                args: []
+            }), '*');
+        }
+        showToast(`Seeking video to: ${formatSeconds(seconds)}`, 'schedule');
+    }
 
-        let videoMeta = { title: `YouTube Video (${videoId})`, channel: "YouTube Creator", description: "" };
-        let transcriptList = [];
+    function formatSeconds(seconds) {
+        const mins = Math.floor(seconds / 60);
+        const secs = seconds % 60;
+        return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+    }
+
+    // --- 3. VIDEO ANALYSIS PIPELINE ---
+    async function loadAndAnalyzeVideo(youtubeUrl, customTitle = null) {
+        const videoId = extractVideoId(youtubeUrl);
+        if (!videoId) {
+            showToast('Please enter a valid YouTube URL or Video ID', 'error');
+            return;
+        }
+
+        currentVideoId = videoId;
+
+        // Show loaded video card and hide placeholder card
+        if (videoPlaceholderCard) videoPlaceholderCard.style.display = 'none';
+        if (loadedVideoCard) loadedVideoCard.style.display = 'block';
+
+        youtubePlayer.src = `https://www.youtube.com/embed/${videoId}?enablejsapi=1&autoplay=1`;
+        activeVideoTitle.textContent = customTitle || `YouTube Video (${videoId})`;
+        videoIdBadge.textContent = `ID: ${videoId}`;
+        chatContextTitle.textContent = customTitle || `Video (${videoId})`;
+
+        showToast('Extracting video metadata & description...', 'auto_awesome');
 
         try {
             const res = await fetch('/api/analyze', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ youtubeUrl: videoId })
+                body: JSON.stringify({ youtubeUrl })
             });
+            const data = await res.json();
 
-            if (res.ok) {
-                const data = await res.json();
-                if (data.metadata) videoMeta = data.metadata;
-                if (data.transcript) transcriptList = data.transcript;
+            if (data.metadata) {
+                activeMetadata = data.metadata;
+                activeVideoTitle.textContent = data.metadata.title;
+                chatContextTitle.textContent = data.metadata.title;
+            }
+
+            if (data.transcript && data.transcript.length > 0) {
+                activeTranscriptData = data.transcript;
+                showToast(`Acquired ${data.transcript.length} transcript captions!`, 'check_circle');
             } else {
-                if (SAMPLE_VIDEOS[videoId]) {
-                    videoMeta = SAMPLE_VIDEOS[videoId];
-                }
+                activeTranscriptData = [];
+                showToast('Metadata & Description acquired (No spoken captions)', 'info');
             }
+
         } catch (e) {
-            if (SAMPLE_VIDEOS[videoId]) {
-                videoMeta = SAMPLE_VIDEOS[videoId];
-            }
-        }
-
-        activeMetadata = videoMeta;
-        activeTranscriptData = transcriptList;
-
-        activeVideoTitle.textContent = videoMeta.title;
-        videoIdBadge.textContent = `ID: ${videoId}`;
-        chatContextTitle.textContent = videoMeta.title;
-
-        showToast(`Video "${videoMeta.title.substring(0, 24)}..." Ready`, 'smart_display');
-
-        const chatEmptyState = document.getElementById('chat-empty-state');
-        if (chatEmptyState) {
-            chatEmptyState.style.display = 'flex';
+            console.warn('Backend server API call failed, using fallback mode:', e);
+            useSampleFallback(videoId, customTitle);
         }
     }
 
+    function useSampleFallback(videoId, customTitle) {
+        const fallback = SAMPLE_VIDEOS[videoId] || {
+            title: customTitle || `YouTube Video (${videoId})`,
+            channel: "YouTube Creator",
+            description: "No metadata description available."
+        };
+
+        activeMetadata = fallback;
+        activeVideoTitle.textContent = fallback.title;
+        chatContextTitle.textContent = fallback.title;
+    }
+
+    function attachTimestampListeners() {
+        document.querySelectorAll('.timestamp-btn').forEach(btn => {
+            btn.onclick = () => {
+                const seconds = parseInt(btn.getAttribute('data-time'), 10);
+                seekToTimestamp(seconds);
+            };
+        });
+    }
+    attachTimestampListeners();
+
     analyzeBtn.addEventListener('click', () => {
-        const val = youtubeUrlInput.value.trim();
-        const extractedId = extractVideoId(val);
-        if (extractedId) {
-            loadVideoData(extractedId);
-        } else {
-            showToast('Please enter a valid YouTube URL or Video ID', 'error');
+        const url = youtubeUrlInput.value.trim();
+        if (!url) {
+            showToast('Please paste a YouTube URL to analyze', 'warning');
+            return;
         }
+        loadAndAnalyzeVideo(url);
     });
 
     youtubeUrlInput.addEventListener('keypress', (e) => {
-        if (e.key === 'Enter') analyzeBtn.click();
+        if (e.key === 'Enter') {
+            const url = youtubeUrlInput.value.trim();
+            if (url) loadAndAnalyzeVideo(url);
+        }
     });
 
     sampleChips.forEach(chip => {
         chip.addEventListener('click', () => {
             sampleChips.forEach(c => c.classList.remove('active'));
             chip.classList.add('active');
-            const vId = chip.getAttribute('data-video-id');
-            youtubeUrlInput.value = `https://www.youtube.com/watch?v=${vId}`;
-            loadVideoData(vId);
+            const videoId = chip.getAttribute('data-video-id');
+            const title = chip.getAttribute('data-title');
+            youtubeUrlInput.value = `https://www.youtube.com/watch?v=${videoId}`;
+            loadAndAnalyzeVideo(videoId, title);
         });
     });
 
-    function seekToTimestamp(seconds) {
-        if (currentVideoId) {
-            youtubePlayer.src = `https://www.youtube.com/embed/${currentVideoId}?autoplay=1&start=${seconds}&enablejsapi=1`;
-            showToast(`Seeking Video to ${Math.floor(seconds/60)}:${(seconds%60).toString().padStart(2,'0')}`, 'timer');
-        }
-    }
-
-    function addMessageToUI(sender, text, timestampLinks = []) {
-        const emptyState = document.getElementById('chat-empty-state');
-        if (emptyState) emptyState.style.display = 'none';
-
-        const row = document.createElement('div');
-        row.className = `message-row ${sender}`;
-
-        let parsedHtml = text
-            .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-            .replace(/\*(.*?)\*/g, '<em>$1</em>')
-            .replace(/```([\s\S]*?)```/g, '<pre><code>$1</code></pre>')
-            .replace(/\n/g, '<br>');
-
-        const timestampRegex = /\[(\d{1,2}:\d{2})\](?::\s*([^\n<]+))?/g;
-        parsedHtml = parsedHtml.replace(timestampRegex, (match, timeStr, descStr) => {
-            const parts = timeStr.split(':');
-            const seconds = parseInt(parts[0]) * 60 + parseInt(parts[1]);
-            let buttonHtml = `<button class="timestamp-btn" data-time="${seconds}"><span class="material-symbols-outlined" style="font-size:14px;">play_arrow</span> ${timeStr}</button>`;
-            if (descStr) {
-                buttonHtml += ` <strong>${descStr.trim()}</strong>`;
-            }
-            return buttonHtml;
-        });
-
-        row.innerHTML = `<div class="chat-bubble">${parsedHtml}</div>`;
-        chatMessagesArea.appendChild(row);
-        chatMessagesArea.scrollTop = chatMessagesArea.scrollHeight;
-
-        row.querySelectorAll('.timestamp-btn').forEach(btn => {
-            btn.addEventListener('click', () => {
-                const secs = parseInt(btn.getAttribute('data-time'));
-                seekToTimestamp(secs);
-            });
-        });
-    }
-
-    function addTypingIndicator() {
-        const row = document.createElement('div');
-        row.className = 'message-row ai';
-        row.id = 'typing-indicator-row';
-        row.innerHTML = `
-            <div class="chat-bubble typing-indicator">
-                <div class="typing-dot"></div>
-                <div class="typing-dot"></div>
-                <div class="typing-dot"></div>
-            </div>
-        `;
-        chatMessagesArea.appendChild(row);
-        chatMessagesArea.scrollTop = chatMessagesArea.scrollHeight;
-    }
-
-    function removeTypingIndicator() {
-        const el = document.getElementById('typing-indicator-row');
-        if (el) el.remove();
-    }
-
-    async function sendChatMessage() {
-        const query = chatInputField.value.trim();
-        if (!query) return;
+    // --- 4. REAL GEMINI AI CHAT ENGINE ---
+    async function sendChatMessage(userText) {
+        if (!userText.trim()) return;
 
         if (!currentVideoId) {
-            showToast('Please load a YouTube video first!', 'warning');
+            showToast('Please paste a YouTube URL or click a sample video first!', 'warning');
             return;
         }
 
-        addMessageToUI('user', query);
-        chatInputField.value = '';
-        addTypingIndicator();
-
-        let transcriptSummaryStr = "";
-        if (activeTranscriptData && activeTranscriptData.length > 0) {
-            transcriptSummaryStr = activeTranscriptData.map(item => `[${item.formatted_time}] ${item.text}`).join('\n');
-            if (transcriptSummaryStr.length > 50000) {
-                transcriptSummaryStr = transcriptSummaryStr.substring(0, 50000) + "\n...[Transcript Truncated]";
-            }
+        // Remove Animated Empty State Card if present
+        const emptyState = document.getElementById('chat-empty-state');
+        if (emptyState) {
+            emptyState.style.opacity = '0';
+            emptyState.style.transform = 'translateY(-10px)';
+            setTimeout(() => emptyState.remove(), 250);
         }
 
+        // Append User Message
+        const userRow = document.createElement('div');
+        userRow.className = 'message-row user';
+        userRow.innerHTML = `<div class="chat-bubble">${escapeHtml(userText)}</div>`;
+        chatMessagesArea.appendChild(userRow);
+
+        chatInputField.value = '';
+        chatMessagesArea.scrollTop = chatMessagesArea.scrollHeight;
+
+        // Append Typing Indicator
+        const typingRow = document.createElement('div');
+        typingRow.className = 'message-row ai';
+        typingRow.id = 'typing-indicator-row';
+        typingRow.innerHTML = `
+            <div class="chat-bubble">
+                <div class="typing-indicator">
+                    <div class="typing-dot"></div>
+                    <div class="typing-dot"></div>
+                    <div class="typing-dot"></div>
+                </div>
+            </div>
+        `;
+        chatMessagesArea.appendChild(typingRow);
+        chatMessagesArea.scrollTop = chatMessagesArea.scrollHeight;
+
+        const transcriptTextToPass = activeTranscriptData.length > 0 
+            ? activeTranscriptData.map(item => `[${item.formatted_time}] ${item.text}`).join('\n')
+            : "[No spoken transcript captions available. Use video description and metadata]";
+
+        const savedApiKey = localStorage.getItem('google_api_key') || '';
+
         try {
-            const response = await fetch('/api/chat', {
+            const res = await fetch('/api/chat', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     videoId: currentVideoId,
                     metadata: activeMetadata,
-                    transcriptText: transcriptSummaryStr,
-                    prompt: query
+                    transcriptText: transcriptTextToPass,
+                    prompt: userText,
+                    model: 'gemini-3.5-flash-lite',
+                    apiKey: savedApiKey
                 })
             });
 
-            removeTypingIndicator();
+            const data = await res.json();
+            typingRow.remove();
 
-            if (response.ok) {
-                const data = await response.json();
-                addMessageToUI('ai', data.answer || 'I have analyzed your request.');
+            if (data.answer) {
+                const aiRow = document.createElement('div');
+                aiRow.className = 'message-row ai';
+                aiRow.innerHTML = `
+                    <div class="chat-bubble">
+                        ${convertMarkdownToHtml(data.answer)}
+                        <div class="sources-accordion" style="margin-top: 14px;">
+                            <button class="sources-toggle">
+                                <span class="material-symbols-outlined" style="font-size: 14px;">expand_more</span>
+                                <span>🔍 View Context Sources</span>
+                            </button>
+                            <div class="sources-content">
+                                <p>Video Metadata & Description + Captions (ID: ${currentVideoId})</p>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                chatMessagesArea.appendChild(aiRow);
+                chatMessagesArea.scrollTop = chatMessagesArea.scrollHeight;
+                attachTimestampListeners();
+                attachSourcesToggle();
             } else {
-                const errData = await response.json();
-                addMessageToUI('ai', `⚠️ Error: ${errData.error || 'Failed to connect to Gemini API.'}`);
+                showToast(data.error || 'Failed to generate answer', 'error');
             }
+
         } catch (e) {
-            removeTypingIndicator();
-            addMessageToUI('ai', `⚠️ Connection Error: Could not process request. (${e.message})`);
+            typingRow.remove();
+            showToast('API Connection Error', 'error');
         }
     }
 
-    sendChatBtn.addEventListener('click', sendChatMessage);
-    chatInputField.addEventListener('keypress', (e) => {
-        if (e.key === 'Enter') sendChatMessage();
+    function convertMarkdownToHtml(text) {
+        // Convert Markdown timestamp links with t=XXs parameter
+        let html = text.replace(/\[(\d{1,2}:\d{2}(?::\d{2})?)\]\([^\)]*?t=(\d+)s?[^\)]*?\)/g, (match, timeStr, seconds) => {
+            return `<button class="timestamp-btn" data-time="${seconds}"><span class="material-symbols-outlined" style="font-size: 12px;">schedule</span> ${timeStr}</button>`;
+        });
+        // Convert Markdown timestamp links without explicit seconds param or plain timestamps [MM:SS]
+        html = html.replace(/\[(\d{1,2}:\d{2}(?::\d{2})?)\](?!\()/g, (match, timeStr) => {
+            const parts = timeStr.split(':').map(Number);
+            let seconds = 0;
+            if (parts.length === 3) seconds = parts[0] * 3600 + parts[1] * 60 + parts[2];
+            else if (parts.length === 2) seconds = parts[0] * 60 + parts[1];
+            return `<button class="timestamp-btn" data-time="${seconds}"><span class="material-symbols-outlined" style="font-size: 12px;">schedule</span> ${timeStr}</button>`;
+        });
+        html = html.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+        html = html.replace(/\n/g, '<br>');
+        return html;
+    }
+
+    function escapeHtml(text) {
+        return text.replace(/[&<>"']/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' }[m]));
+    }
+
+    sendChatBtn.addEventListener('click', () => sendChatMessage(chatInputField.value));
+    chatInputField.addEventListener('keypress', (e) => { if (e.key === 'Enter') sendChatMessage(chatInputField.value); });
+
+    suggestionBtns.forEach(btn => {
+        btn.addEventListener('click', () => sendChatMessage(btn.getAttribute('data-prompt')));
     });
 
     clearChatBtn.addEventListener('click', () => {
@@ -333,14 +390,36 @@ document.addEventListener('DOMContentLoaded', () => {
                 <p class="empty-state-subtitle">Paste a YouTube link above, then ask any type of question to analyze tracklists, tutorials, podcasts, or key moments.</p>
             </div>
         `;
-        showToast('Chat History Cleared', 'delete_sweep');
+        showToast('Chat history cleared', 'delete_sweep');
     });
 
-    suggestionBtns.forEach(btn => {
-        btn.addEventListener('click', () => {
-            const promptText = btn.getAttribute('data-prompt');
-            chatInputField.value = promptText;
-            sendChatMessage();
-        });
+    let isListening = false;
+    micBtn.addEventListener('click', () => {
+        isListening = !isListening;
+        micBtn.style.color = isListening ? 'var(--primary-cyan)' : 'var(--text-muted)';
+        if (isListening) {
+            showToast('Voice Mic Activated - Listening...', 'mic');
+            chatInputField.placeholder = "Listening...";
+            setTimeout(() => {
+                chatInputField.value = "Explain the key steps or tracklist in this video.";
+                chatInputField.placeholder = "Ask anything about this video...";
+                micBtn.style.color = 'var(--text-muted)';
+                isListening = false;
+            }, 2500);
+        }
     });
+
+    function attachSourcesToggle() {
+        document.querySelectorAll('.sources-toggle').forEach(toggle => {
+            toggle.onclick = () => {
+                const content = toggle.nextElementSibling;
+                if (content) {
+                    content.classList.toggle('open');
+                    const icon = toggle.querySelector('.material-symbols-outlined');
+                    if (icon) icon.textContent = content.classList.contains('open') ? 'expand_less' : 'expand_more';
+                }
+            };
+        });
+    }
+
 });

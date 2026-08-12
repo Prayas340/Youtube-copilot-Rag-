@@ -5,6 +5,7 @@ const https = require('https');
 
 const PORT = 8000;
 
+// Secure .env File Parser (Loads local GOOGLE_API_KEY without external packages)
 try {
     const envPath = path.join(__dirname, '.env');
     if (fs.existsSync(envPath)) {
@@ -19,7 +20,9 @@ try {
             }
         });
     }
-} catch (e) {}
+} catch (e) {
+    console.warn("Notice: .env file not found or could not be loaded.");
+}
 
 const MIME_TYPES = {
     '.html': 'text/html',
@@ -85,6 +88,7 @@ async function analyzeYouTubeVideo(videoId) {
     let description = "No video description available.";
     let captions = [];
 
+    // 1. oEmbed metadata
     try {
         const oembedRaw = await httpGet(`https://www.youtube.com/oembed?url=https://www.youtube.com/watch?v=${videoId}&format=json`);
         const oembed = JSON.parse(oembedRaw);
@@ -92,6 +96,7 @@ async function analyzeYouTubeVideo(videoId) {
         channel = oembed.author_name || channel;
     } catch (e) {}
 
+    // 2. Fetch Watch Page & Captions
     try {
         const html = await httpGet(`https://www.youtube.com/watch?v=${videoId}`);
         const match = html.match(/ytInitialPlayerResponse\s*=\s*({.+?});/);
@@ -112,17 +117,19 @@ async function analyzeYouTubeVideo(videoId) {
 
     return {
         video_id: videoId,
-        metadata: { title, channel, description },
+        metadata: {
+            title,
+            channel,
+            description
+        },
         count: captions.length,
         transcript: captions
     };
 }
 
-function callGeminiAPI(prompt, apiKey, model = "gemini-3.6-flash") {
+function callGeminiAPI(prompt, apiKey, model = "gemini-3.5-flash-lite") {
     return new Promise((resolve, reject) => {
-        if (!model || model.includes("1.5") || model.includes("2.0") || model.includes("2.5")) {
-            model = "gemini-3.6-flash";
-        }
+        const modelToUse = model || "gemini-3.5-flash-lite";
 
         const postData = JSON.stringify({
             contents: [{ parts: [{ text: prompt }] }],
@@ -132,7 +139,7 @@ function callGeminiAPI(prompt, apiKey, model = "gemini-3.6-flash") {
         const options = {
             hostname: 'generativelanguage.googleapis.com',
             port: 443,
-            path: `/v1beta/models/${model}:generateContent?key=${apiKey}`,
+            path: `/v1beta/models/${modelToUse}:generateContent?key=${apiKey}`,
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -153,7 +160,9 @@ function callGeminiAPI(prompt, apiKey, model = "gemini-3.6-flash") {
                     } else {
                         reject(new Error('Unexpected Gemini API response structure'));
                     }
-                } catch (e) { reject(e); }
+                } catch (e) {
+                    reject(e);
+                }
             });
         });
 
@@ -168,7 +177,11 @@ function parseJsonBody(req) {
         let body = '';
         req.on('data', chunk => body += chunk.toString());
         req.on('end', () => {
-            try { resolve(body ? JSON.parse(body) : {}); } catch (e) { reject(e); }
+            try {
+                resolve(body ? JSON.parse(body) : {});
+            } catch (e) {
+                reject(e);
+            }
         });
     });
 }
@@ -176,17 +189,22 @@ function parseJsonBody(req) {
 const server = http.createServer(async (req, res) => {
     let reqUrl = req.url.split('?')[0];
 
+    // API ENDPOINT: Analyze Video
     if (req.method === 'POST' && reqUrl === '/api/analyze') {
         try {
             const data = await parseJsonBody(req);
-            const videoId = extractVideoId(data.youtubeUrl || '');
+            const youtubeUrl = data.youtubeUrl || '';
+            const videoId = extractVideoId(youtubeUrl);
+            
             if (!videoId) {
                 res.writeHead(400, { 'Content-Type': 'application/json' });
                 return res.end(JSON.stringify({ error: 'Invalid YouTube URL or Video ID' }));
             }
+
             const analysisResult = await analyzeYouTubeVideo(videoId);
             res.writeHead(200, { 'Content-Type': 'application/json' });
             res.end(JSON.stringify(analysisResult));
+
         } catch (e) {
             res.writeHead(500, { 'Content-Type': 'application/json' });
             res.end(JSON.stringify({ error: e.message }));
@@ -194,23 +212,26 @@ const server = http.createServer(async (req, res) => {
         return;
     }
 
+    // API ENDPOINT: Chat with Gemini AI
     if (req.method === 'POST' && reqUrl === '/api/chat') {
         try {
             const data = await parseJsonBody(req);
             const { videoId, metadata, transcriptText, prompt, apiKey, model } = data;
+            
+            // Secure API key retrieval from environment variables
             const keyToUse = apiKey || process.env.GOOGLE_API_KEY;
 
             if (!keyToUse) {
                 res.writeHead(400, { 'Content-Type': 'application/json' });
-                return res.end(JSON.stringify({ error: 'Google Gemini API key missing.' }));
+                return res.end(JSON.stringify({ error: 'Google Gemini API key missing. Please configure GOOGLE_API_KEY in your .env file.' }));
             }
 
             const metaTitle = metadata ? metadata.title : "YouTube Video";
             const metaChannel = metadata ? (metadata.channel || metadata.uploader) : "Creator";
             const metaDesc = metadata ? metadata.description : "No description provided.";
 
-            const fullPrompt = `You are YouTube Copilot, an elite AI video assistant (powered by Google Gemini 3.5 Flash).
-Your task is to answer ANY type of question about the YouTube video (Title: "${metaTitle}", ID: ${videoId}) like YouTube's "Ask Gemini" feature.
+            const fullPrompt = `You are YouTube Copilot, YouTube's official "Ask Gemini" video assistant.
+Your goal is to provide direct, accurate, natural, and comprehensive answers to ANY question asked about this video (Title: "${metaTitle}", ID: ${videoId}).
 
 === VIDEO METADATA & DESCRIPTION ===
 Title: ${metaTitle}
@@ -221,12 +242,19 @@ ${metaDesc}
 === VIDEO CAPTIONS & TRANSCRIPT ===
 ${transcriptText || 'No spoken transcript captions available for this video.'}
 
+=== STRICT RESPONSE & FORMATTING RULES ===
+1. DIRECT NATURAL ANSWERS: Give thorough, well-structured, clear answers directly addressing what the user asked (like YouTube's "Ask Gemini" feature). Format key sections using bold text or bullet points.
+2. CLICKABLE TIMESTAMPS: Whenever mentioning a timestamp, chapter, quote, or key moment, format it as a clickable markdown timestamp link: [MM:SS](https://www.youtube.com/watch?v=${videoId}&t=Xs) or [HH:MM:SS](https://www.youtube.com/watch?v=${videoId}&t=Xs).
+3. NO INTERNAL MATH OR CONVERSIONS: Output ONLY clean markdown text and timestamp links. DO NOT print raw math formulas, seconds conversions, or scratchpad calculations (e.g. NEVER write "1:16:54 -> 3600 + 16*60 = 4614s").
+4. GROUNDED INTELLIGENCE: Rely on the video title, description, and captions provided above. If no spoken captions exist, use the full description. If information is not available, state: "The video description and captions do not contain this information."
+
 USER QUESTION:
 ${prompt}`;
 
-            const aiResponse = await callGeminiAPI(fullPrompt, keyToUse, model || 'gemini-3.5-flash');
+            const aiResponse = await callGeminiAPI(fullPrompt, keyToUse, model || 'gemini-3.5-flash-lite');
             res.writeHead(200, { 'Content-Type': 'application/json' });
             res.end(JSON.stringify({ answer: aiResponse }));
+
         } catch (e) {
             res.writeHead(500, { 'Content-Type': 'application/json' });
             res.end(JSON.stringify({ error: e.message }));
@@ -234,6 +262,7 @@ ${prompt}`;
         return;
     }
 
+    // STATIC FILE SERVING
     let filePath = path.join(__dirname, reqUrl === '/' ? 'index.html' : reqUrl);
     let extname = path.extname(filePath).toLowerCase();
     let contentType = MIME_TYPES[extname] || 'application/octet-stream';
@@ -248,12 +277,18 @@ ${prompt}`;
                 res.end(`Server Error: ${error.code}`, 'utf-8');
             }
         } else {
-            res.writeHead(200, { 'Content-Type': contentType, 'Cache-Control': 'no-cache' });
+            res.writeHead(200, { 
+                'Content-Type': contentType,
+                'Cache-Control': 'no-cache'
+            });
             res.end(content, 'utf-8');
         }
     });
 });
 
 server.listen(PORT, () => {
-    console.log(`🚀 YouTube Copilot Gemini 3.5 Flash Engine Live on port ${PORT}`);
+    console.log(`====================================================`);
+    console.log(`🚀 YouTube Copilot Gemini 3.5 Flash Engine Live!`);
+    console.log(`🔗 Localhost Link: http://localhost:${PORT}/`);
+    console.log(`====================================================`);
 });
