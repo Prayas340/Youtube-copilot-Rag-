@@ -19,6 +19,11 @@ document.addEventListener('DOMContentLoaded', () => {
             title: "Gemini 2.0 Flash & Multimodal AI",
             channel: "DeepMind Highlights",
             description: "Exploring sub-second latency and 1M token context windows in Gemini 2.0."
+        },
+        "F4SYNSYKWMC": {
+            title: "angelcore mix // DJ Anemia, VNXIOUS, LONOWN",
+            channel: "VNXIOUS",
+            description: "Curated aesthetic angelcore & breakcore music mix.\n00:00 - VNXIOUS - Angelic Reverie\n03:15 - DJ Anemia - Heavenly Glitch\n07:45 - LONOWN - Ethereal Echoes\n12:30 - VNXIOUS x DJ Anemia - Celestial Drift"
         }
     };
 

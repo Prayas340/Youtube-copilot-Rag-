@@ -47,10 +47,34 @@ function parseXmlCaptions(xml) {
     return items;
 }
 
+const SAMPLE_VIDEOS = {
+    "AlpvszL-CvR": {
+        title: "Mastering AI Workflows in 2024",
+        channel: "AI Engineers Lab",
+        description: "Complete guide to setting up production AI workflows with vector databases and LLMs.\n00:00 - Intro\n04:05 - Vector Embeddings\n10:15 - Pipeline Automation"
+    },
+    "L_Guz73e6fw": {
+        title: "LangChain RAG Architecture & VectorDBs",
+        channel: "Tech Architecture Daily",
+        description: "Deep dive into RAG architectures, history-aware retrievers, and vector memory."
+    },
+    "2X89y-ZcM1s": {
+        title: "Gemini 2.0 Flash & Multimodal AI",
+        channel: "DeepMind Highlights",
+        description: "Exploring sub-second latency and 1M token context windows in Gemini 2.0."
+    },
+    "F4SYNSYKWMC": {
+        title: "angelcore mix // DJ Anemia, VNXIOUS, LONOWN",
+        channel: "VNXIOUS",
+        description: "Curated aesthetic angelcore & breakcore music mix.\n00:00 - VNXIOUS - Angelic Reverie\n03:15 - DJ Anemia - Heavenly Glitch\n07:45 - LONOWN - Ethereal Echoes\n12:30 - VNXIOUS x DJ Anemia - Celestial Drift"
+    }
+};
+
 async function analyzeYouTubeVideo(videoId) {
-    let title = `YouTube Video (${videoId})`;
-    let channel = "YouTube Creator";
-    let description = "No video description available.";
+    const sample = SAMPLE_VIDEOS[videoId];
+    let title = sample ? sample.title : `YouTube Video (${videoId})`;
+    let channel = sample ? sample.channel : "YouTube Creator";
+    let description = sample ? sample.description : "No video description available.";
     let captions = [];
 
     // 1. oEmbed metadata
