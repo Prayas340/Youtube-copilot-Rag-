@@ -21,11 +21,17 @@
     <div class="ambient-glow ambient-glow-3"></div>
 
     <div id="app-container">
+        <!-- Mobile Sidebar Backdrop Overlay -->
+        <div id="sidebar-overlay" class="sidebar-overlay"></div>
+
         <!-- Collapsible Sidebar -->
         <aside id="sidebar">
             <div class="sidebar-header">
                 <div class="logo-icon">⚡</div>
                 <span class="logo-text">YouTube Copilot</span>
+                <button class="icon-btn mobile-sidebar-close" id="mobile-sidebar-close-btn" title="Close Sidebar">
+                    <span class="material-symbols-outlined">close</span>
+                </button>
             </div>
 
             <nav class="sidebar-nav">
@@ -46,8 +52,13 @@
         <div id="main-wrapper">
             <!-- Top Header Bar -->
             <header id="top-header">
-                <div class="header-title-container">
-                    <span class="header-page-title" id="page-title-heading">Video Intelligence Dashboard</span>
+                <div class="header-left">
+                    <button class="icon-btn mobile-menu-btn" id="mobile-menu-toggle" title="Open Navigation Menu">
+                        <span class="material-symbols-outlined">menu</span>
+                    </button>
+                    <div class="header-title-container">
+                        <span class="header-page-title" id="page-title-heading">Video Intelligence Dashboard</span>
+                    </div>
                 </div>
 
                 <div class="header-actions">
