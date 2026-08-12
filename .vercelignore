@@ -1,4 +1,6 @@
-# Ignore Streamlit Python files so Vercel builds the Node.js / HTML web app smoothly
+# Ignore server.js and Streamlit files on Vercel so Vercel serves index.html and api/index.js cleanly
+server.js
+streamlit_app/
 app.py
 transcript_helper.py
 requirements.txt
