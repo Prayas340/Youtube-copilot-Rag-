@@ -51,10 +51,6 @@
                 </div>
 
                 <div class="header-actions">
-                    <button class="icon-btn" id="api-key-btn" title="Set Gemini API Key" style="display:flex; align-items:center; gap:6px; padding:0 12px; width:auto; border-radius:20px; background:rgba(0,240,255,0.1); border:1px solid rgba(0,240,255,0.3); color:var(--primary-cyan); font-size:13px; font-weight:600; cursor:pointer;">
-                        <span class="material-symbols-outlined" style="font-size:16px;">key</span>
-                        <span>API Key</span>
-                    </button>
                     <button class="icon-btn" id="theme-toggle" title="Toggle Theme">
                         <span class="material-symbols-outlined">dark_mode</span>
                     </button>
@@ -216,34 +212,6 @@
 
     <!-- Toast Notification Container -->
     <div class="toast-container" id="toast-container"></div>
-
-    <!-- Glassmorphism API Key Modal -->
-    <div id="key-modal-overlay" style="position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.75); backdrop-filter:blur(10px); display:none; justify-content:center; align-items:center; z-index:9999;">
-        <div style="background:var(--surface-glass); border:1px solid var(--glass-border); border-radius:20px; padding:28px; width:90%; max-width:480px; box-shadow:0 20px 50px rgba(0,0,0,0.6); display:flex; flex-direction:column; gap:16px;">
-            <div style="display:flex; justify-content:space-between; align-items:center;">
-                <div style="display:flex; align-items:center; gap:8px;">
-                    <span class="material-symbols-outlined" style="color:var(--primary-cyan); font-size:24px;">key</span>
-                    <h3 style="font-size:18px; font-weight:700; margin:0; color:#fff;">Google Gemini API Key</h3>
-                </div>
-                <button id="close-key-modal" style="background:none; border:none; color:var(--text-muted); cursor:pointer;">
-                    <span class="material-symbols-outlined">close</span>
-                </button>
-            </div>
-            <p style="font-size:13px; color:var(--text-muted); margin:0;">
-                Paste your Google AI Studio key below (starts with <code style="color:var(--primary-cyan);">AIzaSy...</code>).
-            </p>
-            <div style="display:flex; gap:8px;">
-                <input type="password" id="modal-api-key-input" class="search-input" placeholder="AIzaSy... (Paste Gemini API Key)" style="flex:1;">
-                <button type="button" id="modal-toggle-key" class="btn-primary" style="padding:0 14px; background:rgba(255,255,255,0.08); border:1px solid var(--glass-border);">
-                    <span class="material-symbols-outlined" id="modal-key-eye" style="font-size:18px;">visibility</span>
-                </button>
-            </div>
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-top:8px;">
-                <a href="https://aistudio.google.com/app/apikey" target="_blank" style="color:var(--primary-cyan); font-size:12px; text-decoration:underline;">Get Free Key at Google AI Studio ↗</a>
-                <button id="save-modal-key-btn" class="btn-primary" style="padding:8px 20px;">Save Key</button>
-            </div>
-        </div>
-    </div>
 
     <script src="app.js"></script>
 </body>
